@@ -13,10 +13,10 @@ class DnsRequestHandler(SocketServer.BaseRequestHandler):
         dnsQuery = dns.DnsQuery(data)
 
         if not dnsQuery.valid:
-            syslog("Received invalid request")
+            syslog("%s - Received invalid request" % (self.client_address[0]))
             dnsQueryResponse = dnsQuery.response(dns.Rcode.FormatError);
         elif not len(dnsQuery.questions):
-            syslog("Received request without question")
+            syslog("%s - Received request without question" % (self.client_address[0]))
             dnsQueryResponse = dnsQuery.response(dns.Rcode.Refused)
         else:
             question = dnsQuery.questions[0]
@@ -24,10 +24,10 @@ class DnsRequestHandler(SocketServer.BaseRequestHandler):
             ip = self.server.catalog.getIp(question.qname[:-1])
 
             if not ip:
-                syslog("No IP for '%s' found" % (question.qname[:-1]))
+                syslog("%s - No IP for '%s' found" % (self.client_address[0], question.qname[:-1]))
                 dnsQueryResponse = dnsQuery.response(dns.Rcode.NameError, question)
             else:
-                syslog("Found IP '%s' for '%s'" % (ip, question.qname[:-1]))
+                syslog("%s - Found IP '%s' for '%s'" % (self.client_address[0], ip, question.qname[:-1]))
                 dnsQueryResponse = dnsQuery.response(dns.Rcode.NoError, question, ip)
 
         socket.sendto(dnsQueryResponse, self.client_address)
