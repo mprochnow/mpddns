@@ -5,14 +5,6 @@ class Opcode:
     Inverse = 1
     ServerStatus = 2
 
-    @staticmethod
-    def get(val):
-        mapping = {0: Opcode.Standard,
-                   1: Opcode.Inverse,
-                   2: Opcode.ServerStatus}
-
-        return mapping.get(val)
-
 class Type:
     A = 1
     NS = 2
@@ -24,34 +16,11 @@ class Type:
     MX = 15
     TXT = 16
 
-    @staticmethod
-    def get(val):
-        mapping = {1: Type.A,
-                   2: Type.NS,
-                   5: Type.CNAME,
-                   6: Type.SOA,
-                   11: Type.WKS,
-                   12: Type.PTR,
-                   14: Type.HINFO,
-                   15: Type.MX,
-                   16: Type.TXT}
-
-        return mapping.get(val)
-
 class Class:
     IN = 1
     CH = 3
     HS = 5
     ANY = 255
-
-    @staticmethod
-    def get(val):
-        mapping = {1: Class.IN,
-                   3: Class.CH,
-                   5: Class.HS,
-                   255: Class.ANY}
-
-        return mapping.get(val)
 
 class Rcode:
     NoError = 0
@@ -70,7 +39,7 @@ class Header:
 
         self.id = raw[0]
         self.qr = (raw[1] & 0x8000) >> 15
-        self.opcode = Opcode.get((raw[1] & 0x7800) >> 11)
+        self.opcode = (raw[1] & 0x7800) >> 11
         self.qdCount = raw[2]
         self.anCount = raw[3]
         self.nsCount = raw[4]
@@ -98,8 +67,8 @@ class Question:
         qtype, qclass = Question.Format.unpack_from(data, offset)
         self.offset += Question.Format.size
 
-        self.qtype = Type.get(qtype)
-        self.qclass = Class.get(qclass)
+        self.qtype = qtype
+        self.qclass = qclass
 
     def get(self):
         result = ''
