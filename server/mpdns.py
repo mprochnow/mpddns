@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+import grp
+import os
+import pwd
 import signal
 import sys
 import syslog
@@ -27,7 +30,7 @@ class Main(object):
     
     def run(self):
         try:
-            syslog.syslog('Starting mpdns server')
+            syslog.syslog('Starting mpdns server (pid: %s)' % os.getpid())
 
             catalog = Catalog(self.config.catalog)
 
@@ -37,9 +40,7 @@ class Main(object):
             self.dnsSrv.start()
             self.updateSrv.start()
 
-            # TODO find something less ugly
-            # time.sleep(1) # give servers time to initialize
-            # self.dropPrivileges()
+            self.changeUserGroup(self.config.user, self.config.group)
 
             signal.signal(signal.SIGTERM, self.handleSignals)
             signal.pause()
@@ -52,26 +53,27 @@ class Main(object):
         self.updateSrv.stop()
         self.dnsSrv.stop()
 
-    # http://stackoverflow.com/questions/2699907/dropping-root-permissions-in-python/2699996#2699996
-    def dropPrivileges(self, uidName='nobody', gidName='nogroup'):
-        import os, pwd, grp
+    def changeUserGroup(self, user='nobody', group='nogroup'):
+        if user and group:
+            if os.getuid() != 0:
+                syslog.syslog(syslog.LOG_ERR, "Not running as root, cannot change user/group")
+                return
 
-        if os.getuid() != 0:
-            return # We're not root so, like, whatever dude
+            try:
+                uid = pwd.getpwnam(user).pw_uid
+                gid = grp.getgrnam(group).gr_gid
+            except KeyError:
+                syslog.syslog(syslog.LOG_ERR, "User %s or group %s not found, will not change user/group" % (user, group))
+                return
 
-        # Get the uid/gid from the name
-        uid = pwd.getpwnam(uidName).pw_uid
-        gid = grp.getgrnam(gidName).gr_gid
+            try:
+                os.setgroups([])
+                os.setgid(gid)
+                os.setuid(uid)
+            except OSError, e:
+                syslog.syslog(syslog.LOG_ERR, "An error occurred while changing user/group - %s (%d)" % (e.strerror, e.errno))
 
-        # Remove group privileges
-        os.setgroups([])
-
-        # Try setting the new uid/gid
-        os.setgid(gid)
-        os.setuid(uid)
-
-        # Ensure a very conservative umask
-        os.umask(077)
+            syslog.syslog("Changed user/group to %s/%s" % (user, group))
 
 if __name__ == '__main__':
     syslog.openlog("mpdns")

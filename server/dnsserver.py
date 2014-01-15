@@ -1,3 +1,4 @@
+import socket
 import SocketServer
 from syslog import syslog
 import traceback
@@ -46,8 +47,9 @@ class DnsServer(threading.Thread):
         while not self.cancel:
             try:
                 self.server.handle_request()
-            except:
-                syslog(traceback.format_exc())
+            except socket.error, e:
+                if e.errno != 4:
+                    syslog(traceback.format_exc())
     
     def stop(self):
         self.cancel = True

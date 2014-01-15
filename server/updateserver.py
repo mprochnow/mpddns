@@ -2,32 +2,43 @@ import binascii
 import hashlib
 import hmac
 import os
+import socket
 import SocketServer
 from syslog import syslog
 import threading
 import traceback
 
 class UpdateRequestHandler(SocketServer.BaseRequestHandler):
+    timeout = 1 # just an estimate
+
+    def setup(self):
+        if self.timeout:
+            self.request.settimeout(self.timeout)
+
     def handle(self):
         challenge = binascii.b2a_hex(os.urandom(15))
 
         self.request.sendall(challenge + "\r\n")
 
-        response = self.request.recv(1024)
-        pos = response.find(" ")
-        if pos:
-            domain = response[:pos]
-
-            digest = response[pos + 1:]
-            pos = digest.find("\r\n")
+        try:
+            response = self.request.recv(1024)
+        except socket.timeout:
+            pass
+        else:
+            pos = response.find(" ")
             if pos:
-                digest = digest[:pos]
+                domain = response[:pos]
 
-                if len(digest):
-                    password = str(self.server.catalog.getPassword(domain))
+                digest = response[pos + 1:]
+                pos = digest.find("\r\n")
+                if pos:
+                    digest = digest[:pos]
 
-                    if hmac.new(password, challenge, hashlib.sha256).hexdigest() == digest:
-                        self.server.catalog.updateIp(domain, self.client_address[0])
+                    if len(digest):
+                        password = str(self.server.catalog.getPassword(domain))
+
+                        if hmac.new(password, challenge, hashlib.sha256).hexdigest() == digest:
+                            self.server.catalog.updateIp(domain, self.client_address[0])
 
 class UpdateServer(threading.Thread):
     def __init__(self, address, catalog):
@@ -44,27 +55,9 @@ class UpdateServer(threading.Thread):
         while not self.cancel:
             try:
                 self.server.handle_request()
-            except:
-                syslog(traceback.format_exc())
+            except socket.error, e:
+                if e.errno != 4:
+                    syslog(traceback.format_exc())
 
     def stop(self):
         self.cancel = True
-
-if __name__ == "__main__":
-    import socket
-
-    srv = UpdateServer(("0.0.0.0", 1337), None)
-    srv.start()
-
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect(("0.0.0.0", 1337))
-    d = s.recv(1024)
-
-    digest = hmac.new("password123", d[:-2], hashlib.sha256).hexdigest()
-
-    print digest
-
-    s.sendall("home.martin-prochnow.de " + digest + "\r\n")
-    s.close()
-
-    srv.stop()

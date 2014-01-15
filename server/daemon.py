@@ -1,4 +1,3 @@
-import atexit
 import fcntl
 import os.path
 import signal
@@ -73,7 +72,5 @@ class Daemon(object):
                 self.lockfile = open(self.pidfile, 'w+')
                 fcntl.flock(self.lockfile, fcntl.LOCK_EX)
                 self.lockfile.write("%s" % str(os.getpid()))
-
-                atexit.register(self.pidfile)
             except:
                 syslog.syslog(syslog.LOG_ERR, 'Writing pid file %s failed' % self.pidfile)

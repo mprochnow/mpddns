@@ -36,8 +36,8 @@ class Config:
             raise ConfigException("Parsing config file to JSON failed (%s)" % str(e))
 
         self.pidFile = data.get("pid_file")
-        self.user = data.get("user", "nobody")
-        self.group = data.get("group", "nogroup")
+        self.user = data.get("user")
+        self.group = data.get("group")
         self.dnsBind = data.get("dns_bind", "0.0.0.0")
         self.dnsPort = data.get("dns_port", 53)
         self.updateBind = data.get("update_bind", "0.0.0.0")
