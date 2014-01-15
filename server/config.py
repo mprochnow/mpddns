@@ -44,8 +44,5 @@ class Config:
         self.updatePort = data.get("update_port", 7331)
         self.catalog = data.get("catalog")
 
-        if self.pidFile is None:
-            raise ConfigException("No pid file given")
-
         if self.catalog is None or len(self.catalog.keys()) == 0:
             raise ConfigException("Catalog not given or empty")

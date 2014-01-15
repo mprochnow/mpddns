@@ -1,19 +1,34 @@
 #!/usr/bin/env python
 
 import signal
+import sys
 import syslog
 import traceback
 
 from catalog import Catalog
 from config import Config, ConfigException
-from daemon import DaemonBase
+from daemon import Daemon
 from dnsserver import DnsServer
 from updateserver import UpdateServer
 
-class Daemon(DaemonBase):
+class Main(object):
+    def __init__(self):
+        try:
+            self.config = Config()
+        except ConfigException, e:
+            sys.stderr.write('Error in config file - %s\n' % str(e))
+    
+    def start(self):
+        try:
+            with Daemon(self.config.pidFile):
+                self.run()
+        except RuntimeError, e:
+            sys.stderr.write('%s' % str(e))
+    
     def run(self):
         try:
-            syslog.openlog("mpdns")
+            syslog.syslog('Starting mpdns server')
+
             catalog = Catalog(self.config.catalog)
 
             self.dnsSrv = DnsServer((self.config.dnsBind, self.config.dnsPort), catalog)
@@ -28,9 +43,11 @@ class Daemon(DaemonBase):
 
             signal.signal(signal.SIGTERM, self.handleSignals)
             signal.pause()
+
+            syslog.syslog('Stopping mpdns server')
         except:
             syslog.syslog(traceback.format_exc())
-    
+
     def handleSignals(self, signum, frame):
         self.updateSrv.stop()
         self.dnsSrv.stop()
@@ -56,18 +73,6 @@ class Daemon(DaemonBase):
         # Ensure a very conservative umask
         os.umask(077)
 
-def main():
-    try:
-        config = Config()
-
-        d = Daemon(config.pidFile)
-        d.config = config
-        d.start()
-    except ConfigException, e:
-        print "Error in config file:", str(e)
-    except Exception, e:
-        print "Runtime exception:", str(e)
-    
-
 if __name__ == '__main__':
-    main()
+    syslog.openlog("mpdns")
+    Main().start()
