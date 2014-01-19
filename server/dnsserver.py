@@ -1,4 +1,4 @@
-import socket
+import select
 import SocketServer
 from syslog import syslog
 import traceback
@@ -47,9 +47,10 @@ class DnsServer(threading.Thread):
         while not self.cancel:
             try:
                 self.server.handle_request()
-            except socket.error, e:
-                if e.errno != 4:
-                    syslog(traceback.format_exc())
+            except select.error:
+                pass # ignoring it, happens when select call will be interrupted by user change
+            except:
+                syslog(traceback.format_exc())
     
     def stop(self):
         self.cancel = True

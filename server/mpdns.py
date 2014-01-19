@@ -72,6 +72,7 @@ class Main(object):
                 os.setuid(uid)
             except OSError, e:
                 syslog.syslog(syslog.LOG_ERR, "An error occurred while changing user/group - %s (%d)" % (e.strerror, e.errno))
+                return
 
             syslog.syslog("Changed user/group to %s/%s" % (user, group))
 
