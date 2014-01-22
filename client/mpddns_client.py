@@ -7,11 +7,11 @@ import socket
 import syslog
 
 if __name__ == '__main__':
-    syslog.openlog("mpdns_client")
+    syslog.openlog("mpddns_client")
 
     parser = optparse.OptionParser()
-    parser.add_option("-s", "--server", help="Host of mpDNS server")
-    parser.add_option("-p", "--port", help="Port of mpDNS server (default: 7331)")
+    parser.add_option("-s", "--server", help="Host of mpddns server")
+    parser.add_option("-p", "--port", help="Port of mpddns server (default: 7331)")
     parser.add_option("-H", "--host", help="Hostname to update")
     parser.add_option("-P", "--password", help="Password to authenticate")
     options, args = parser.parse_args()
@@ -38,4 +38,4 @@ if __name__ == '__main__':
     s.sendall(host + " " + digest + "\r\n")
     s.close()
 
-    syslog.syslog("Updated mpdns server")
+    syslog.syslog("Updated mpddns server")

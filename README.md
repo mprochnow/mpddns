@@ -1,4 +1,4 @@
-# mpdns
+# mpddns
 
 A simple service for only one purpose - running your own dynamic DNS.
 
@@ -6,7 +6,7 @@ A simple service for only one purpose - running your own dynamic DNS.
 You need a (Linux) server in the Internet and a domain with access to the
 nameserver settings. Create a NS record for a sub-domain of your domain
 (e.g. home.example.com) which points to your server. On the server install
-and run the *mpdns* server. Run periodically the *mpdns* client from within
+and run the *mpddns* server. Run periodically the *mpddns* client from within
 your home network to update the sub-domain with the IP of your Internet
 access.
 

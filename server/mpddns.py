@@ -30,7 +30,7 @@ class Main(object):
     
     def run(self):
         try:
-            syslog.syslog('Starting mpdns server (pid: %s)' % os.getpid())
+            syslog.syslog('Starting mpddns server (pid: %s)' % os.getpid())
 
             catalog = Catalog(self.config.catalog)
 
@@ -45,7 +45,7 @@ class Main(object):
             signal.signal(signal.SIGTERM, self.handleSignals)
             signal.pause()
 
-            syslog.syslog('Stopping mpdns server')
+            syslog.syslog('Stopping mpddns server')
         except:
             syslog.syslog(traceback.format_exc())
 
@@ -77,5 +77,5 @@ class Main(object):
             syslog.syslog("Changed user/group to %s/%s" % (user, group))
 
 if __name__ == '__main__':
-    syslog.openlog("mpdns")
+    syslog.openlog("mpddns")
     Main().start()
