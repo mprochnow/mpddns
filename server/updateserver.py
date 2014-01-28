@@ -59,7 +59,7 @@ class UpdateServer(threading.Thread):
             except select.error:
                 pass # ignoring it, happens when select call will be interrupted by user change
             except:
-                syslog(traceback.format_exc())
+                syslog.syslog(syslog.LOG_CRIT, traceback.format_exc())
 
     def stop(self):
         self.cancel = True

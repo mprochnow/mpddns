@@ -13,6 +13,7 @@ from config import Config, ConfigException
 from daemon import Daemon
 from dnsserver import DnsServer
 from updateserver import UpdateServer
+from httpupdateserver import HTTPUpdateServer
 
 class Main(object):
     def __init__(self):
@@ -32,13 +33,15 @@ class Main(object):
         try:
             syslog.syslog('Starting mpddns server (pid: %s)' % os.getpid())
 
-            catalog = Catalog(self.config.catalog)
+            catalog = Catalog(self.config.catalog, self.config.cacheFile)
 
             self.dnsSrv = DnsServer((self.config.dnsBind, self.config.dnsPort), catalog)
             self.updateSrv = UpdateServer((self.config.updateBind, self.config.updatePort), catalog)
+	    self.httpUpdateSrv = HTTPUpdateServer((self.config.httpUpdateBind, self.config.httpUpdatePort), catalog)
 
             self.dnsSrv.start()
             self.updateSrv.start()
+	    self.httpUpdateSrv.start()
 
             self.changeUserGroup(self.config.user, self.config.group)
 
@@ -47,11 +50,12 @@ class Main(object):
 
             syslog.syslog('Stopping mpddns server')
         except:
-            syslog.syslog(traceback.format_exc())
+            syslog.syslog(syslog.LOG_ERR, traceback.format_exc())
 
     def handleSignals(self, signum, frame):
         self.updateSrv.stop()
         self.dnsSrv.stop()
+	self.httpUpdateSrv.stop()
 
     def changeUserGroup(self, user='nobody', group='nogroup'):
         if user and group:
