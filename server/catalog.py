@@ -29,7 +29,7 @@ class Catalog:
             pass
 
         for domain, config in data.iteritems():
-            if "password" in config:
+            if config.get("password"):
                 self.catalog[domain] = CatalogEntry(config["password"])
             else:
                 syslog.syslog("'%s' has no password given" % domain)
@@ -41,10 +41,12 @@ class Catalog:
         if entry is None:
             return False
 
-        if entry.getIp() != ip:
-            entry.updateIp(ip)
+        if entry.getIp() == ip:
+            return True
         
+        entry.updateIp(ip)
         syslog.syslog("Updated '%s' with '%s'" % (domain, ip))
+
         try:
             with open(self.cacheFile, 'w') as f:
                 json.dump({domain: entry.getIp() for domain, entry in self.catalog.iteritems()}, f)
