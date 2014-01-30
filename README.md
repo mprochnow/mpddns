@@ -20,5 +20,8 @@ The client has no config file, check the command-line help for the required
 arguments
 
 ## TODOs
-A lot ...
+(no special order)
 
+ * enhance documentation
+ * use Python logging module
+ * make usage of the different update server configurable 
