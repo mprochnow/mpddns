@@ -29,14 +29,18 @@ class Catalog:
             pass
 
         for domain, config in data.iteritems():
+            domain = domain.lower()
+
             if config.get("password"):
                 self.catalog[domain] = CatalogEntry(config["password"])
+
+                if domain in cacheData:
+                    self.catalog[domain].updateIp(cacheData[domain])
             else:
                 syslog.syslog("'%s' has no password given" % domain)
-            if domain in cacheData:
-                self.catalog[domain].updateIp(cacheData[domain])
 
     def updateIp(self, domain, ip):
+        domain = domain.lower()
         entry = self.catalog.get(domain)
         if entry is None:
             return False
@@ -56,12 +60,14 @@ class Catalog:
         return True
 
     def getIp(self, domain):
+        domain = domain.lower()
         entry = self.catalog.get(domain)
         if entry:
             return entry.getIp()
         return None
 
     def getPassword(self, domain):
+        domain = domain.lower()
         entry = self.catalog.get(domain)
         if entry:
             return entry.getPassword()
