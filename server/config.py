@@ -13,7 +13,10 @@ class Config:
         self.dnsPort = None
         self.updateBind = None
         self.updatePort = None
+        self.httpUpdateBind = None
+        self.httpUpdatePort = None
         self.catalog = None
+        self.cacheFile = None
 
         self.parseCmdLine()
         self.parseConfigFile()
@@ -42,7 +45,10 @@ class Config:
         self.dnsPort = data.get("dns_port", 53)
         self.updateBind = data.get("update_bind", "0.0.0.0")
         self.updatePort = data.get("update_port", 7331)
+        self.httpUpdateBind = data.get("http_update_bind", self.updateBind)
+        self.httpUpdatePort = data.get("http_update_port", 8000)
         self.catalog = data.get("catalog")
+        self.cacheFile = data.get("cache_file", "/tmp/dnsCache.json")
 
         if self.catalog is None or len(self.catalog.keys()) == 0:
             raise ConfigException("Catalog not given or empty")
