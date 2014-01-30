@@ -32,7 +32,7 @@ class HTTPUpdateRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.end_headers()
 
 class HTTPUpdateServer(threading.Thread):
-    timeout = 5
+    timeout = 0.1
 
     def __init__(self, address, catalog):
         threading.Thread.__init__(self)

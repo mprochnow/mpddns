@@ -48,7 +48,7 @@ class Config:
         self.httpUpdateBind = data.get("http_update_bind", self.updateBind)
         self.httpUpdatePort = data.get("http_update_port", 8000)
         self.catalog = data.get("catalog")
-        self.cacheFile = data.get("cache_file", "/tmp/dnsCache.json")
+        self.cacheFile = data.get("cache_file", "/tmp/mpddns.cache")
 
         if self.catalog is None or len(self.catalog.keys()) == 0:
             raise ConfigException("Catalog not given or empty")

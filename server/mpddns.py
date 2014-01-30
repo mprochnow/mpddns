@@ -37,11 +37,11 @@ class Main(object):
 
             self.dnsSrv = DnsServer((self.config.dnsBind, self.config.dnsPort), catalog)
             self.updateSrv = UpdateServer((self.config.updateBind, self.config.updatePort), catalog)
-	    self.httpUpdateSrv = HTTPUpdateServer((self.config.httpUpdateBind, self.config.httpUpdatePort), catalog)
+            self.httpUpdateSrv = HTTPUpdateServer((self.config.httpUpdateBind, self.config.httpUpdatePort), catalog)
 
             self.dnsSrv.start()
             self.updateSrv.start()
-	    self.httpUpdateSrv.start()
+            self.httpUpdateSrv.start()
 
             self.changeUserGroup(self.config.user, self.config.group)
 
@@ -50,12 +50,12 @@ class Main(object):
 
             syslog.syslog('Stopping mpddns server')
         except:
-            syslog.syslog(syslog.LOG_ERR, traceback.format_exc())
+            syslog.syslog(syslog.LOG_CRIT, traceback.format_exc())
 
     def handleSignals(self, signum, frame):
         self.updateSrv.stop()
         self.dnsSrv.stop()
-	self.httpUpdateSrv.stop()
+        self.httpUpdateSrv.stop()
 
     def changeUserGroup(self, user='nobody', group='nogroup'):
         if user and group:

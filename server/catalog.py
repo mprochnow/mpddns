@@ -42,33 +42,28 @@ class Catalog:
     def updateIp(self, domain, ip):
         domain = domain.lower()
         entry = self.catalog.get(domain)
-        if entry is None:
-            return False
+        if entry and entry.getIp() != ip:
+            entry.updateIp(ip)
+            syslog.syslog("Updated '%s' with '%s'" % (domain, ip))
 
-        if entry.getIp() == ip:
+            try:
+                with open(self.cacheFile, 'w') as f:
+                    json.dump(dict((domain, entry.getIp()) for domain, entry in self.catalog.iteritems()), f)
+            except:
+                syslog.syslog(syslog.LOG_CRIT, traceback.format_exc())
+
             return True
-        
-        entry.updateIp(ip)
-        syslog.syslog("Updated '%s' with '%s'" % (domain, ip))
 
-        try:
-            with open(self.cacheFile, 'w') as f:
-                json.dump({domain: entry.getIp() for domain, entry in self.catalog.iteritems()}, f)
-        except:
-            syslog.syslog(syslog.LOG_ERR, traceback.format_exc())
-
-        return True
+        return False
 
     def getIp(self, domain):
-        domain = domain.lower()
-        entry = self.catalog.get(domain)
+        entry = self.catalog.get(domain.lower())
         if entry:
             return entry.getIp()
         return None
 
     def getPassword(self, domain):
-        domain = domain.lower()
-        entry = self.catalog.get(domain)
+        entry = self.catalog.get(domain.lower())
         if entry:
             return entry.getPassword()
         return None
