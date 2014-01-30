@@ -72,5 +72,6 @@ class Daemon(object):
                 self.lockfile = open(self.pidfile, 'w+')
                 fcntl.flock(self.lockfile, fcntl.LOCK_EX)
                 self.lockfile.write("%s" % str(os.getpid()))
+                self.lockfile.flush()
             except:
                 syslog.syslog(syslog.LOG_ERR, 'Writing pid file %s failed' % self.pidfile)
