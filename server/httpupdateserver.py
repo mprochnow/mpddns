@@ -47,6 +47,8 @@ class HTTPUpdateServer(threading.Thread):
         while not self.cancel:
             try:
                 self.server.handle_request()
+            except select.error:
+                pass # ignoring it, happens when select call will be interrupted by user change
             except:
                 syslog.syslog(syslog.LOG_CRIT, traceback.format_exc())
 
