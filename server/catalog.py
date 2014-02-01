@@ -23,31 +23,24 @@ class Catalog:
         
         cacheData = {}
         try:
-            with open(self.cacheFile, 'r') as f:
+            with open(self.cacheFile, "r") as f:
                 cacheData = json.load(f)
         except:
             pass
 
-        for domain, config in data.iteritems():
-            domain = domain.lower()
-
-            if config.get("password"):
-                self.catalog[domain] = CatalogEntry(config["password"])
-
-                if domain in cacheData:
-                    self.catalog[domain].updateIp(cacheData[domain])
-            else:
-                syslog.syslog("'%s' has no password given" % domain)
+        for domain, ip in cacheData.iteritems():
+            self.updateIp(domain, ip)
 
     def updateIp(self, domain, ip):
         domain = domain.lower()
+
         entry = self.catalog.get(domain)
         if entry and entry.getIp() != ip:
             entry.updateIp(ip)
             syslog.syslog("Updated '%s' with '%s'" % (domain, ip))
 
             try:
-                with open(self.cacheFile, 'w') as f:
+                with open(self.cacheFile, "w") as f:
                     json.dump(dict((domain, entry.getIp()) for domain, entry in self.catalog.iteritems()), f)
             except:
                 syslog.syslog(syslog.LOG_CRIT, traceback.format_exc())
