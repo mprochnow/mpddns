@@ -15,8 +15,8 @@ class Config:
         self.updatePort = None
         self.httpUpdateBind = None
         self.httpUpdatePort = None
-        self.catalog = None
         self.cacheFile = None
+        self.catalog = {}
 
         self.parseCmdLine()
         self.parseConfigFile()
@@ -47,8 +47,23 @@ class Config:
         self.updatePort = data.get("update_port", 7331)
         self.httpUpdateBind = data.get("http_update_bind", self.updateBind)
         self.httpUpdatePort = data.get("http_update_port", 8000)
-        self.catalog = data.get("catalog")
         self.cacheFile = data.get("cache_file", "/tmp/mpddns.cache")
+        catalog = data.get("catalog")
 
-        if self.catalog is None or len(self.catalog.keys()) == 0:
-            raise ConfigException("Catalog not given or empty")
+        if catalog is None:
+            raise ConfigException("No catalog given")
+
+        if not isinstance(catalog, dict):
+            raise ConfigException("Catalog is not of JSON-type 'object'")
+
+        if not len(catalog):
+            raise ConfigException("Catalog is empty")
+        
+        for domain, config in catalog.iteritems():
+            if not isinstance(config, dict):
+                raise ConfigException("Configuration for domain '%s' is not of JSON-type 'object'" % domain)
+            password = config.get("password")
+            if password is None or not len(password):
+                raise ConfigException("No password for domain '%s' given" % domain)
+
+            self.catalog[domain.lower()] = config
