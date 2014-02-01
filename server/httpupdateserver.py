@@ -12,23 +12,17 @@ class HTTPUpdateRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         
         if ("domain" not in parsedQuery) or ("password" not in parsedQuery) or ("ip" not in parsedQuery):
             self.send_response(400)
-            self.end_headers()
-            return
-	
-        password = str(self.server.catalog.getPassword(parsedQuery["domain"][0]))
-
-        if parsedQuery["password"][0] != password:
-            self.send_response(401)
-            self.end_headers()
-            return
-
-        status = self.server.catalog.updateIp(parsedQuery["domain"][0], parsedQuery["ip"][0])
-	    
-        if status:
-            self.send_response(200)
-            self.end_headers()
         else:
-            self.send_response(404)
+            password = self.server.catalog.getPassword(parsedQuery["domain"][0])
+            if password is not None:
+                if password != parsedQuery["password"][0]:
+                    self.send_response(401)
+                else:
+                    self.server.catalog.updateIp(parsedQuery["domain"][0], parsedQuery["ip"][0])
+                    self.send_response(200)
+            else:
+                self.send_response(404)
+
             self.end_headers()
 
 class HTTPUpdateServer(threading.Thread):

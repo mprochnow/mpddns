@@ -45,10 +45,6 @@ class Catalog:
             except:
                 syslog.syslog(syslog.LOG_CRIT, traceback.format_exc())
 
-            return True
-
-        return False
-
     def getIp(self, domain):
         entry = self.catalog.get(domain.lower())
         if entry:
