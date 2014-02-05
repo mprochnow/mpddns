@@ -5,7 +5,11 @@ import threading
 import traceback
 
 class HTTPUpdateRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+    server_version = "mpddns"
     
+    def log_message(self, format, *args):
+        pass
+
     def do_GET(self):
         parsedURL = urlparse.urlparse(self.path)
         parsedQuery = urlparse.parse_qs(parsedURL.query)
@@ -16,7 +20,7 @@ class HTTPUpdateRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             password = self.server.catalog.getPassword(parsedQuery["domain"][0])
             if password is not None:
                 if password != parsedQuery["password"][0]:
-                    self.send_response(401)
+                    self.send_response(403)
                 else:
                     self.server.catalog.updateIp(parsedQuery["domain"][0], parsedQuery["ip"][0])
                     self.send_response(200)
