@@ -6,7 +6,8 @@ import traceback
 
 class HTTPUpdateRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     server_version = "mpddns"
-    
+    timeout = 1 # just an estimate
+
     def log_message(self, format, *args):
         pass
 
