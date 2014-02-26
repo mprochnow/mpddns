@@ -21,6 +21,9 @@ class Catalog:
         self.catalog = {}
         self.cacheFile = cacheFile
         
+        for domain, config in data.iteritems():
+            self.catalog[domain] = CatalogEntry(config["password"])
+
         cacheData = {}
         try:
             with open(self.cacheFile, "r") as f:
