@@ -1,69 +1,85 @@
-import json
-import optparse
+import argparse
+import ConfigParser
 
 class ConfigException(Exception):
     pass
 
+class DefaultConfigParser(ConfigParser.RawConfigParser):
+    def get(self, section, option, default=None):
+        if self.has_option(section, option):
+            return ConfigParser.RawConfigParser.get(self, section, option)
+        else:
+            return default
+    
+    def getboolean(self, section, option, default=None):
+        if self.has_option(section, option):
+            return ConfigParser.RawConfigParser.getboolean(self, section, option)
+        else:
+            return default
+
+    def getint(self, section, option, default = None):
+        if self.has_option(section, option):
+            return ConfigParser.RawConfigParser.getint(self, section, option)
+        else:
+            return default
+
 class Config:
     def __init__(self):
-        self.pidFile = None
-        self.user = None
-        self.group = None
-        self.dnsBind = None
-        self.dnsPort = None
-        self.updateBind = None
-        self.updatePort = None
-        self.httpUpdateBind = None
-        self.httpUpdatePort = None
-        self.cacheFile = None
-        self.catalog = {}
+        self.parse_cmd_line()
+        self.parse_config_file()
 
-        self.parseCmdLine()
-        self.parseConfigFile()
+    def parse_cmd_line(self):
+        parser = argparse.ArgumentParser(description="A simple dynamic DNS")
+        parser.add_argument("-c",
+                            metavar="<config-file>",
+                            help="config file (default: /etc/mpddns/mpddns.conf)",
+                            default="/etc/mpddns/mpddns.conf")
+        results = parser.parse_args()
 
-    def parseCmdLine(self):
-        parser = optparse.OptionParser()
-        parser.add_option("-c", "--config", help="config file")
-        options, args = parser.parse_args()
+        self.config_file = results.c
 
-        self.configFile = options.config
-        if self.configFile is None:
-            parser.print_help()
-            parser.exit()
+    def parse_config_file(self):
+        parser = DefaultConfigParser()
 
-    def parseConfigFile(self):
-        f = open(self.configFile, "r")
         try:
-            data = json.load(f)
-        except ValueError, e:
-            raise ConfigException("Parsing config file to JSON failed (%s)" % str(e))
+            if not parser.read(self.config_file):
+                raise ConfigException("Unable to open file '%s'" % self.config_file)
+        except ConfigParser.Error:
+            raise ConfigException("File '%s' seems to be an invalid config file" % self.config_file)
 
-        self.pidFile = data.get("pid_file")
-        self.user = data.get("user")
-        self.group = data.get("group")
-        self.dnsBind = data.get("dns_bind", "0.0.0.0")
-        self.dnsPort = data.get("dns_port", 53)
-        self.updateBind = data.get("update_bind", "0.0.0.0")
-        self.updatePort = data.get("update_port", 7331)
-        self.httpUpdateBind = data.get("http_update_bind", self.updateBind)
-        self.httpUpdatePort = data.get("http_update_port", 8000)
-        self.cacheFile = data.get("cache_file", "/tmp/mpddns.cache")
-        catalog = data.get("catalog")
-
-        if catalog is None:
-            raise ConfigException("No catalog given")
-
-        if not isinstance(catalog, dict):
-            raise ConfigException("Catalog is not of JSON-type 'object'")
-
-        if not len(catalog):
-            raise ConfigException("Catalog is empty")
+        self.user = parser.get("mpddns", "user", "nobody")
+        self.group = parser.get("mpddns", "group", "nogroup")
+        self.pid_file = parser.get("mpddns", "pid_file", "/var/run/mpddns.pid")
+        self.cache_file = parser.get("mpddns", "cache_file", "/tmp/mpddns.cache")
         
-        for domain, config in catalog.iteritems():
-            if not isinstance(config, dict):
-                raise ConfigException("Configuration for domain '%s' is not of JSON-type 'object'" % domain)
-            password = config.get("password")
-            if password is None or not len(password):
+        self.dns_server = (parser.get("dns_server", "bind", "0.0.0.0"),
+                           parser.getint("dns_server", "port", 53))
+
+        if parser.getboolean("update_server", "enabled", True):
+            self.update_server = (parser.get("update_server", "bind", "0.0.0.0"),
+                                  parser.getint("update_server", "port", 7331))
+        else:
+            self.update_server = None
+
+        if parser.getboolean("http_update_server", "enabled", False):
+            self.http_update_server = (parser.get("http_update_server", "bind", "0.0.0.0"),
+                                       parser.getint("http_update_server", "port", 8000))
+        else:
+            self.http_update_server = None
+
+        if not self.update_server and not self.http_update_server:
+            raise ConfigException("At least one update server variant needs to be activated")
+
+        if not parser.has_section("catalog"):
+            raise ConfigException("Section 'catalog' not given")
+
+        catalog_items = parser.items("catalog")
+        if not catalog_items:
+            raise ConfigException("Section 'catalog' is empty")
+
+        self.catalog = {}
+        for domain, secret in catalog_items:
+            if not secret:
                 raise ConfigException("No password for domain '%s' given" % domain)
 
-            self.catalog[domain.lower()] = config
+            self.catalog[domain] = secret

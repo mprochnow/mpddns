@@ -21,8 +21,8 @@ class Catalog:
         self.catalog = {}
         self.cacheFile = cacheFile
         
-        for domain, config in data.iteritems():
-            self.catalog[domain] = CatalogEntry(config["password"])
+        for domain, password in data.iteritems():
+            self.catalog[domain] = CatalogEntry(password)
 
         cacheData = {}
         try:

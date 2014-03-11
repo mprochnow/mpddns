@@ -24,7 +24,7 @@ class Main(object):
     
     def start(self):
         try:
-            with Daemon(self.config.pidFile):
+            with Daemon(self.config.pid_file):
                 self.run()
         except RuntimeError, e:
             sys.stderr.write('%s' % str(e))
@@ -33,15 +33,22 @@ class Main(object):
         try:
             syslog.syslog('Starting mpddns server (pid: %s)' % os.getpid())
 
-            catalog = Catalog(self.config.catalog, self.config.cacheFile)
+            catalog = Catalog(self.config.catalog, self.config.cache_file)
 
-            self.dnsSrv = DnsServer((self.config.dnsBind, self.config.dnsPort), catalog)
-            self.updateSrv = UpdateServer((self.config.updateBind, self.config.updatePort), catalog)
-            self.httpUpdateSrv = HTTPUpdateServer((self.config.httpUpdateBind, self.config.httpUpdatePort), catalog)
-
+            self.dnsSrv = DnsServer(self.config.dns_server, catalog)
             self.dnsSrv.start()
-            self.updateSrv.start()
-            self.httpUpdateSrv.start()
+
+            if self.config.update_server:
+                self.updateSrv = UpdateServer(self.config.update_server, catalog)
+                self.updateSrv.start()
+            else:
+                self.updateSrv = None
+
+            if self.config.http_update_server:
+                self.httpUpdateSrv = HTTPUpdateServer(self.config.http_update_server, catalog)
+                self.httpUpdateSrv.start()
+            else:
+                self.httpUpdateSrv = None
 
             self.changeUserGroup(self.config.user, self.config.group)
 
@@ -53,9 +60,11 @@ class Main(object):
             syslog.syslog(syslog.LOG_CRIT, traceback.format_exc())
 
     def handleSignals(self, signum, frame):
-        self.updateSrv.stop()
         self.dnsSrv.stop()
-        self.httpUpdateSrv.stop()
+        if self.updateSrv:
+            self.updateSrv.stop()
+        if self.httpUpdateSrv:
+            self.httpUpdateSrv.stop()
 
     def changeUserGroup(self, user='nobody', group='nogroup'):
         if user and group:
