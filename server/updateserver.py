@@ -1,13 +1,12 @@
 import binascii
 import hashlib
 import hmac
+import logging
 import os
 import select
 import socket
 import SocketServer
-from syslog import syslog
 import threading
-import traceback
 
 class UpdateRequestHandler(SocketServer.BaseRequestHandler):
     timeout = 1 # just an estimate
@@ -59,7 +58,7 @@ class UpdateServer(threading.Thread):
             except select.error:
                 pass # ignoring it, happens when select call will be interrupted by user change
             except:
-                syslog.syslog(syslog.LOG_CRIT, traceback.format_exc())
+                logging.exception("Unhandled exception in update server loop")
 
     def stop(self):
         self.cancel = True

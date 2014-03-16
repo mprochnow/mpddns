@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 
 import grp
+import logging.config
 import os
 import pwd
 import signal
 import sys
-import syslog
-import traceback
 
 from catalog import Catalog
 from config import Config, ConfigException
@@ -15,6 +14,14 @@ from dnsserver import DnsServer
 from updateserver import UpdateServer
 from httpupdateserver import HTTPUpdateServer
 
+LOG_CONFIG = {"version": 1,
+              "disable_existing_loggers": False,
+              "handlers": {"syslog": {"class": "logging.handlers.SysLogHandler",
+                                      "address": "/dev/log",
+                                      "facility": "daemon"}},
+              "loggers": {"": {"level": "DEBUG",
+                               "handlers": ["syslog"]}}}
+
 class Main(object):
     def __init__(self):
         try:
@@ -22,6 +29,8 @@ class Main(object):
         except ConfigException, e:
             sys.stderr.write('Error in config file - %s\n' % str(e))
     
+        logging.config.dictConfig(LOG_CONFIG)
+
     def start(self):
         try:
             with Daemon(self.config.pid_file):
@@ -31,7 +40,7 @@ class Main(object):
     
     def run(self):
         try:
-            syslog.syslog('Starting mpddns server (pid: %s)' % os.getpid())
+            logging.info('Starting mpddns server (pid: %s)' % os.getpid())
 
             catalog = Catalog(self.config.catalog, self.config.cache_file)
 
@@ -55,9 +64,9 @@ class Main(object):
             signal.signal(signal.SIGTERM, self.handleSignals)
             signal.pause()
 
-            syslog.syslog('Stopping mpddns server')
+            logging.info('Stopping mpddns server')
         except:
-            syslog.syslog(syslog.LOG_CRIT, traceback.format_exc())
+            logging.exception("Unhandled exception during start-up")
 
     def handleSignals(self, signum, frame):
         self.dnsSrv.stop()
@@ -69,14 +78,14 @@ class Main(object):
     def changeUserGroup(self, user='nobody', group='nogroup'):
         if user and group:
             if os.getuid() != 0:
-                syslog.syslog(syslog.LOG_ERR, "Not running as root, cannot change user/group")
+                logging.error("Not running as root, cannot change user/group")
                 return
 
             try:
                 uid = pwd.getpwnam(user).pw_uid
                 gid = grp.getgrnam(group).gr_gid
             except KeyError:
-                syslog.syslog(syslog.LOG_ERR, "User %s or group %s not found, will not change user/group" % (user, group))
+                logging.error("User %s or group %s not found, will not change user/group" % (user, group))
                 return
 
             try:
@@ -84,11 +93,10 @@ class Main(object):
                 os.setgid(gid)
                 os.setuid(uid)
             except OSError, e:
-                syslog.syslog(syslog.LOG_ERR, "An error occurred while changing user/group - %s (%d)" % (e.strerror, e.errno))
+                logging.error("An error occurred while changing user/group - %s (%d)" % (e.strerror, e.errno))
                 return
 
-            syslog.syslog("Changed user/group to %s/%s" % (user, group))
+            logging.info("Changed user/group to %s/%s" % (user, group))
 
 if __name__ == '__main__':
-    syslog.openlog("mpddns")
     Main().start()

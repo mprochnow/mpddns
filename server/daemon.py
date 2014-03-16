@@ -1,8 +1,8 @@
 import fcntl
+import logging
 import os.path
 import signal
 import sys
-import syslog
 
 class Daemon(object):
     def __init__(self, pidfile=None):
@@ -11,7 +11,7 @@ class Daemon(object):
 
     def __enter__(self):
         if not self.checkLockFile():
-            raise RuntimeError('There is already an instance of this process running')
+            raise RuntimeError("There is already an instance of this process running")
         
         self.daemonize()
         self.writePidFile()
@@ -31,7 +31,7 @@ class Daemon(object):
             if os.fork() > 0:
                 os._exit(0)
         except OSError, e:
-            syslog.syslog(syslog.LOG_CRIT, "fork() failed: %s (%s)\n" % (e.strerror, e.errno))
+            logging.critical("fork() failed: %s (%s)\n" % (e.strerror, e.errno))
             os._exit(1)
     
         os.setsid()
@@ -42,24 +42,24 @@ class Daemon(object):
             if os.fork() > 0:
                 os._exit(0)
         except OSError, e:
-            syslog.syslog(syslog.LOG_CRIT, "fork() failed: %s (%s)\n" % (e.strerror, e.errno))
+            logging.critical("fork() failed: %s (%s)\n" % (e.strerror, e.errno))
             os._exit(1)
     
-        os.chdir('/')
+        os.chdir("/")
         os.umask(0)
     
         sys.stdout.flush()
         sys.stderr.flush()
-        si = file('/dev/null', 'r')
-        so = file('/dev/null', 'a')
-        se = file('/dev/null', 'a+', 0)
+        si = file("/dev/null", "r")
+        so = file("/dev/null", "a")
+        se = file("/dev/null", "a+", 0)
         os.dup2(si.fileno(), sys.stdin.fileno())
         os.dup2(so.fileno(), sys.stdout.fileno())
         os.dup2(se.fileno(), sys.stderr.fileno())
 
     def checkLockFile(self):
         if self.pidfile and os.path.isfile(self.pidfile):
-            with open(self.pidfile, 'r') as f:
+            with open(self.pidfile, "r") as f:
                 try:
                     fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
                 except IOError:
@@ -69,9 +69,9 @@ class Daemon(object):
     def writePidFile(self):
         if self.pidfile:
             try:
-                self.lockfile = open(self.pidfile, 'w+')
+                self.lockfile = open(self.pidfile, "w+")
                 fcntl.flock(self.lockfile, fcntl.LOCK_EX)
                 self.lockfile.write("%s" % str(os.getpid()))
                 self.lockfile.flush()
             except:
-                syslog.syslog(syslog.LOG_ERR, 'Writing pid file %s failed' % self.pidfile)
+                logging.error("Writing pid file %s failed" % self.pidfile)

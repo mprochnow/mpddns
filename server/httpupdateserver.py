@@ -1,8 +1,7 @@
 import BaseHTTPServer
+import logging
 import urlparse
-import syslog
 import threading
-import traceback
 
 class HTTPUpdateRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     server_version = "mpddns"
@@ -49,7 +48,7 @@ class HTTPUpdateServer(threading.Thread):
             except select.error:
                 pass # ignoring it, happens when select call will be interrupted by user change
             except:
-                syslog.syslog(syslog.LOG_CRIT, traceback.format_exc())
+                logging.exception("Unhandled exception in HTTP update server loop")
 
     def stop(self):
         self.cancel = True

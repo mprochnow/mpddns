@@ -1,6 +1,5 @@
-import syslog
 import json
-import traceback
+import logging
 
 class CatalogEntry:
     def __init__(self, password):
@@ -40,13 +39,13 @@ class Catalog:
         entry = self.catalog.get(domain)
         if entry and entry.getIp() != ip:
             entry.updateIp(ip)
-            syslog.syslog("Updated '%s' with '%s'" % (domain, ip))
+            logging.info("Updated '%s' with '%s'" % (domain, ip))
 
             try:
                 with open(self.cacheFile, "w") as f:
                     json.dump(dict((domain, entry.getIp()) for domain, entry in self.catalog.iteritems()), f)
             except:
-                syslog.syslog(syslog.LOG_CRIT, traceback.format_exc())
+                logging.exception("Unhandled exception while writing cache file")
 
     def getIp(self, domain):
         entry = self.catalog.get(domain.lower())

@@ -11,17 +11,11 @@ your home network to update the sub-domain with the IP of your Internet
 access.
 
 ## Configuration
-For the server, see the example config file in directory server/etc/. The server
-needs to be started with the command-line argument *-c* and the config file as
-parameter. It will start into background (as a daemon), log messages will go
-to the system log.
+For the server, see the example config file in directory *server/etc/*. If the 
+server was started without any parameters, it looks at
+*/etc/mpddns/mpddns.conf* for its config file. Use the command-line option
+*-c* to change this behavior. The server will start into background 
+(as daemon), log messages will go to the system log.
 
 The client has no config file, check the command-line help for the required
 arguments
-
-## TODOs
-(no special order)
-
- * enhance documentation
- * use Python logging module
- * make usage of the different update server configurable 

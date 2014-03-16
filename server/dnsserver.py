@@ -1,7 +1,6 @@
+import logging
 import select
 import SocketServer
-from syslog import syslog
-import traceback
 import threading
 
 import dns
@@ -14,10 +13,10 @@ class DnsRequestHandler(SocketServer.BaseRequestHandler):
         dnsQuery = dns.DnsQuery(data)
 
         if not dnsQuery.valid:
-            syslog("%s - Received invalid request" % (self.client_address[0]))
+            logging.error("%s - Received invalid request" % (self.client_address[0]))
             dnsQueryResponse = dnsQuery.response(dns.Rcode.FormatError);
         elif not len(dnsQuery.questions):
-            syslog("%s - Received request without question" % (self.client_address[0]))
+            logging.error("%s - Received request without question" % (self.client_address[0]))
             dnsQueryResponse = dnsQuery.response(dns.Rcode.Refused)
         else:
             question = dnsQuery.questions[0]
@@ -25,10 +24,10 @@ class DnsRequestHandler(SocketServer.BaseRequestHandler):
             ip = self.server.catalog.getIp(question.qname[:-1])
 
             if not ip:
-                syslog("%s - No IP for '%s' found" % (self.client_address[0], question.qname[:-1]))
+                logging.info("%s - No IP for '%s' found" % (self.client_address[0], question.qname[:-1]))
                 dnsQueryResponse = dnsQuery.response(dns.Rcode.NameError, question)
             else:
-                syslog("%s - Found IP '%s' for '%s'" % (self.client_address[0], ip, question.qname[:-1]))
+                logging.info("%s - Found IP '%s' for '%s'" % (self.client_address[0], ip, question.qname[:-1]))
                 dnsQueryResponse = dnsQuery.response(dns.Rcode.NoError, question, ip)
 
         socket.sendto(dnsQueryResponse, self.client_address)
@@ -50,7 +49,7 @@ class DnsServer(threading.Thread):
             except select.error:
                 pass # ignoring it, happens when select call will be interrupted by user change
             except:
-                syslog(traceback.format_exc())
+                logging.exception("Unhandled exception in DNS server loop")
     
     def stop(self):
         self.cancel = True
