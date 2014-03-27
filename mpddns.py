@@ -7,20 +7,21 @@ import pwd
 import signal
 import sys
 
-from catalog import Catalog
-from config import Config, ConfigException
-from daemon import Daemon
-from dnsserver import DnsServer
-from updateserver import UpdateServer
-from httpupdateserver import HTTPUpdateServer
+from mpddns.catalog import Catalog
+from mpddns.config import Config, ConfigException
+from mpddns.daemon import Daemon
+from mpddns.dnsserver import DnsServer
+from mpddns.updateserver import UpdateServer
+from mpddns.httpupdateserver import HTTPUpdateServer
 
 LOG_CONFIG = {"version": 1,
               "disable_existing_loggers": False,
-              "handlers": {"syslog": {"class": "logging.handlers.SysLogHandler",
+              "handlers": {"default": {"class": "logging.StreamHandler"},
+                           "syslog": {"class": "logging.handlers.SysLogHandler",
                                       "address": "/dev/log",
                                       "facility": "daemon"}},
               "loggers": {"": {"level": "DEBUG",
-                               "handlers": ["syslog"]}}}
+                               "handlers": ["default"]}}}
 
 class Main(object):
     def __init__(self):
