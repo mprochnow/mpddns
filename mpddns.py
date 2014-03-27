@@ -8,7 +8,7 @@ import signal
 import sys
 
 from mpddns.catalog import Catalog
-from mpddns.config import Config, ConfigException
+from mpddns.config import Config, ConfigError
 from mpddns.daemon import Daemon
 from mpddns.dnsserver import DnsServer
 from mpddns.updateserver import UpdateServer
@@ -27,7 +27,7 @@ class Main(object):
     def __init__(self):
         try:
             self.config = Config()
-        except ConfigException, e:
+        except ConfigError, e:
             sys.stderr.write('Error in config file - %s\n' % str(e))
     
         logging.config.dictConfig(LOG_CONFIG)
@@ -45,22 +45,22 @@ class Main(object):
 
             catalog = Catalog(self.config.catalog, self.config.cache_file)
 
-            self.dnsSrv = DnsServer(self.config.dns_server, catalog)
-            self.dnsSrv.start()
+            self.dns_srv = DnsServer(self.config.dns_server, catalog)
+            self.dns_srv.start()
 
             if self.config.update_server:
-                self.updateSrv = UpdateServer(self.config.update_server, catalog)
-                self.updateSrv.start()
+                self.update_srv = UpdateServer(self.config.update_server, catalog)
+                self.update_srv.start()
             else:
-                self.updateSrv = None
+                self.update_srv = None
 
             if self.config.http_update_server:
-                self.httpUpdateSrv = HTTPUpdateServer(self.config.http_update_server, catalog)
-                self.httpUpdateSrv.start()
+                self.http_update_srv = HTTPUpdateServer(self.config.http_update_server, catalog)
+                self.http_update_srv.start()
             else:
-                self.httpUpdateSrv = None
+                self.http_update_srv = None
 
-            self.changeUserGroup(self.config.user, self.config.group)
+            self.change_user_group(self.config.user, self.config.group)
 
             signal.signal(signal.SIGTERM, self.handleSignals)
             signal.pause()
@@ -70,13 +70,13 @@ class Main(object):
             logging.exception("Unhandled exception during start-up")
 
     def handleSignals(self, signum, frame):
-        self.dnsSrv.stop()
-        if self.updateSrv:
-            self.updateSrv.stop()
-        if self.httpUpdateSrv:
-            self.httpUpdateSrv.stop()
+        self.dns_srv.stop()
+        if self.update_srv:
+            self.update_srv.stop()
+        if self.http_update_srv:
+            self.http_update_srv.stop()
 
-    def changeUserGroup(self, user='nobody', group='nogroup'):
+    def change_user_group(self, user='nobody', group='nogroup'):
         if user and group:
             if os.getuid() != 0:
                 logging.error("Not running as root, cannot change user/group")

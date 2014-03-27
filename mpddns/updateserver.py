@@ -35,10 +35,10 @@ class UpdateRequestHandler(SocketServer.BaseRequestHandler):
                     digest = digest[:pos]
 
                     if len(digest):
-                        password = str(self.server.catalog.getPassword(domain))
+                        password = str(self.server.catalog.get_password(domain))
 
                         if hmac.new(password, challenge, hashlib.sha256).hexdigest() == digest:
-                            self.server.catalog.updateIp(domain, self.client_address[0])
+                            self.server.catalog.update_ip(domain, self.client_address[0])
 
 class UpdateServer(threading.Thread):
     def __init__(self, address, catalog):

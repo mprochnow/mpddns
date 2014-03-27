@@ -11,18 +11,18 @@ class HTTPUpdateRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         pass
 
     def do_GET(self):
-        parsedURL = urlparse.urlparse(self.path)
-        parsedQuery = urlparse.parse_qs(parsedURL.query)
+        parsed_url = urlparse.urlparse(self.path)
+        parsed_query = urlparse.parse_qs(parsed_url.query)
         
-        if ("domain" not in parsedQuery) or ("password" not in parsedQuery) or ("ip" not in parsedQuery):
+        if ("domain" not in parsed_query) or ("password" not in parsed_query) or ("ip" not in parsed_query):
             self.send_response(400)
         else:
-            password = self.server.catalog.getPassword(parsedQuery["domain"][0])
+            password = self.server.catalog.get_password(parsed_query["domain"][0])
             if password is not None:
-                if password != parsedQuery["password"][0]:
+                if password != parsed_query["password"][0]:
                     self.send_response(403)
                 else:
-                    self.server.catalog.updateIp(parsedQuery["domain"][0], parsedQuery["ip"][0])
+                    self.server.catalog.update_ip(parsed_query["domain"][0], parsed_query["ip"][0])
                     self.send_response(200)
             else:
                 self.send_response(404)

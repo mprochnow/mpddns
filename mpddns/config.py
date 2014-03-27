@@ -1,7 +1,7 @@
 import argparse
 import ConfigParser
 
-class ConfigException(Exception):
+class ConfigError(Exception):
     pass
 
 class DefaultConfigParser(ConfigParser.RawConfigParser):
@@ -43,9 +43,9 @@ class Config:
 
         try:
             if not parser.read(self.config_file):
-                raise ConfigException("Unable to open file '%s'" % self.config_file)
+                raise ConfigError("Unable to open file '%s'" % self.config_file)
         except ConfigParser.Error:
-            raise ConfigException("File '%s' seems to be an invalid config file" % self.config_file)
+            raise ConfigError("File '%s' seems to be an invalid config file" % self.config_file)
 
         self.user = parser.get("mpddns", "user", "nobody")
         self.group = parser.get("mpddns", "group", "nogroup")
@@ -68,18 +68,18 @@ class Config:
             self.http_update_server = None
 
         if not self.update_server and not self.http_update_server:
-            raise ConfigException("At least one update server variant needs to be activated")
+            raise ConfigError("At least one update server variant needs to be activated")
 
         if not parser.has_section("catalog"):
-            raise ConfigException("Section 'catalog' not given")
+            raise ConfigError("Section 'catalog' not given")
 
         catalog_items = parser.items("catalog")
         if not catalog_items:
-            raise ConfigException("Section 'catalog' is empty")
+            raise ConfigError("Section 'catalog' is empty")
 
         self.catalog = {}
         for domain, secret in catalog_items:
             if not secret:
-                raise ConfigException("No password for domain '%s' given" % domain)
+                raise ConfigError("No password for domain '%s' given" % domain)
 
             self.catalog[domain] = secret

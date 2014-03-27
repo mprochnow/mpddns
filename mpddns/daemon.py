@@ -10,11 +10,11 @@ class Daemon(object):
         self.pidfile = pidfile
 
     def __enter__(self):
-        if not self.checkLockFile():
+        if not self.check_lock_file():
             raise RuntimeError("There is already an instance of this process running")
         
         self.daemonize()
-        self.writePidFile()
+        self.write_pid_file()
 
     def __exit__(self, exc_type, exc_value, traceback_):
         try:
@@ -57,7 +57,7 @@ class Daemon(object):
         os.dup2(so.fileno(), sys.stdout.fileno())
         os.dup2(se.fileno(), sys.stderr.fileno())
 
-    def checkLockFile(self):
+    def check_lock_file(self):
         if self.pidfile and os.path.isfile(self.pidfile):
             with open(self.pidfile, "r") as f:
                 try:
@@ -66,7 +66,7 @@ class Daemon(object):
                     return False # file is locked => another process is running
         return True
 
-    def writePidFile(self):
+    def write_pid_file(self):
         if self.pidfile:
             try:
                 self.lockfile = open(self.pidfile, "w+")

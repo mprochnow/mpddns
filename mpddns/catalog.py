@@ -6,13 +6,13 @@ class CatalogEntry:
         self.password = password
         self.ip = None
 
-    def updateIp(self, ip):
+    def update_ip(self, ip):
         self.ip = ip
 
-    def getIp(self):
+    def get_ip(self):
         return self.ip
 
-    def getPassword(self):
+    def get_password(self):
         return self.password
 
 class Catalog:
@@ -31,30 +31,30 @@ class Catalog:
             pass
 
         for domain, ip in cacheData.iteritems():
-            self.updateIp(domain, ip)
+            self.update_ip(domain, ip)
 
-    def updateIp(self, domain, ip):
+    def update_ip(self, domain, ip):
         domain = domain.lower()
 
         entry = self.catalog.get(domain)
-        if entry and entry.getIp() != ip:
-            entry.updateIp(ip)
+        if entry and entry.get_ip() != ip:
+            entry.update_ip(ip)
             logging.info("Updated '%s' with '%s'" % (domain, ip))
 
             try:
                 with open(self.cacheFile, "w") as f:
-                    json.dump(dict((domain, entry.getIp()) for domain, entry in self.catalog.iteritems()), f)
+                    json.dump({domain: entry.get_ip() for domain, entry in self.catalog.iteritems()}, f)
             except:
                 logging.exception("Unhandled exception while writing cache file")
 
-    def getIp(self, domain):
+    def get_ip(self, domain):
         entry = self.catalog.get(domain.lower())
         if entry:
-            return entry.getIp()
+            return entry.get_ip()
         return None
 
-    def getPassword(self, domain):
+    def get_password(self, domain):
         entry = self.catalog.get(domain.lower())
         if entry:
-            return entry.getPassword()
+            return entry.get_password()
         return None
