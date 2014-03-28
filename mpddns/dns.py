@@ -1,9 +1,11 @@
 import struct
 
+
 class Opcode:
     Standard = 0
     Inverse = 1
     ServerStatus = 2
+
 
 class Type:
     A = 1
@@ -16,19 +18,22 @@ class Type:
     MX = 15
     TXT = 16
 
+
 class Class:
     IN = 1
     CH = 3
     HS = 5
     ANY = 255
 
+
 class Rcode:
     NoError = 0
-    FormatError = 1 # Unable to interpret query
-    ServerFailure = 2 # Unable to process query because of internal problems
-    NameError = 3 # Queried domain name does not exists
-    NotImplemented = 4 # Requested query not supported
-    Refused = 5 # Server refuses to process query
+    FormatError = 1  # Unable to interpret query
+    ServerFailure = 2  # Unable to process query because of internal problems
+    NameError = 3  # Queried domain name does not exists
+    NotImplemented = 4  # Requested query not supported
+    Refused = 5  # Server refuses to process query
+
 
 class Header:
     Size = 12
@@ -44,6 +49,7 @@ class Header:
         self.anCount = raw[3]
         self.nsCount = raw[4]
         self.arCount = raw[5]
+
 
 class Question:
     Format = struct.Struct(">2H")
@@ -77,6 +83,7 @@ class Question:
 
         return result
 
+
 class DnsQuery:
     QuerySectionFormat = struct.Struct(">2H")
 
@@ -102,12 +109,12 @@ class DnsQuery:
     def response(self, rcode, question=None, ip=None):
         result = ''
 
-        result += Header.Format.pack(self.header.id, # id
-                                     0x8400 | (rcode & 0x0f), # header
-                                     0x0001 if question else 0x0000, # qdcount
-                                     0x0001 if rcode == Rcode.NoError else 0x0000, # ancount
-                                     0x0000, # nscount
-                                     0x0000) # arcount
+        result += Header.Format.pack(self.header.id,  # id
+                                     0x8400 | (rcode & 0x0f),  # header
+                                     0x0001 if question else 0x0000,  # qdcount
+                                     0x0001 if rcode == Rcode.NoError else 0x0000,  # ancount
+                                     0x0000,  # nscount
+                                     0x0000)  # arcount
 
         if question:
             result += question.get()
@@ -117,8 +124,8 @@ class DnsQuery:
                                   0xc000 | 0x000c,  # pointer to domain name
                                   Type.A,
                                   Class.IN,
-                                  0x00000000, # ttl
-                                  0x0004) # rdlength
+                                  0x00000000,  # ttl
+                                  0x0004)  # rdlength
 
             # A record
             for part in ip.split('.'):

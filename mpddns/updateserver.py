@@ -8,8 +8,9 @@ import socket
 import SocketServer
 import threading
 
+
 class UpdateRequestHandler(SocketServer.BaseRequestHandler):
-    timeout = 1 # just an estimate
+    timeout = 1  # just an estimate
 
     def setup(self):
         if self.timeout:
@@ -40,6 +41,7 @@ class UpdateRequestHandler(SocketServer.BaseRequestHandler):
                         if hmac.new(password, challenge, hashlib.sha256).hexdigest() == digest:
                             self.server.catalog.update_ip(domain, self.client_address[0])
 
+
 class UpdateServer(threading.Thread):
     def __init__(self, address, catalog):
         threading.Thread.__init__(self)
@@ -56,7 +58,7 @@ class UpdateServer(threading.Thread):
             try:
                 self.server.handle_request()
             except select.error:
-                pass # ignoring it, happens when select call will be interrupted by user change
+                pass  # ignoring it, happens when select call will be interrupted by user change
             except:
                 logging.exception("Unhandled exception in update server loop")
 

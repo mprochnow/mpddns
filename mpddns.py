@@ -23,13 +23,14 @@ LOG_CONFIG = {"version": 1,
               "loggers": {"": {"level": "DEBUG",
                                "handlers": ["default"]}}}
 
+
 class Main(object):
     def __init__(self):
         try:
             self.config = Config()
         except ConfigError, e:
-            sys.stderr.write('Error in config file - %s\n' % str(e))
-    
+            sys.stderr.write("Error in config file - %s\n" % str(e))
+
         logging.config.dictConfig(LOG_CONFIG)
 
     def start(self):
@@ -38,10 +39,10 @@ class Main(object):
                 self.run()
         except RuntimeError, e:
             sys.stderr.write('%s' % str(e))
-    
+
     def run(self):
         try:
-            logging.info('Starting mpddns server (pid: %s)' % os.getpid())
+            logging.info("Starting mpddns server (pid: %s)" % os.getpid())
 
             catalog = Catalog(self.config.catalog, self.config.cache_file)
 
@@ -65,7 +66,7 @@ class Main(object):
             signal.signal(signal.SIGTERM, self.handleSignals)
             signal.pause()
 
-            logging.info('Stopping mpddns server')
+            logging.info("Stopping mpddns server")
         except:
             logging.exception("Unhandled exception during start-up")
 
@@ -76,7 +77,7 @@ class Main(object):
         if self.http_update_srv:
             self.http_update_srv.stop()
 
-    def change_user_group(self, user='nobody', group='nogroup'):
+    def change_user_group(self, user="nobody", group="nogroup"):
         if user and group:
             if os.getuid() != 0:
                 logging.error("Not running as root, cannot change user/group")
@@ -99,5 +100,5 @@ class Main(object):
 
             logging.info("Changed user/group to %s/%s" % (user, group))
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     Main().start()

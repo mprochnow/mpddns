@@ -24,7 +24,7 @@ if __name__ == '__main__':
     if server is None or host is None or password is None or (port and not port.isdigit()):
         parser.print_help()
         parser.exit()
-    
+
     portnum = 7331
     if port:
         portnum = int(port)

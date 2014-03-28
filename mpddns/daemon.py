@@ -4,6 +4,7 @@ import os.path
 import signal
 import sys
 
+
 class Daemon(object):
     def __init__(self, pidfile=None):
         self.lockfile = None
@@ -12,7 +13,7 @@ class Daemon(object):
     def __enter__(self):
         if not self.check_lock_file():
             raise RuntimeError("There is already an instance of this process running")
-        
+
         self.daemonize()
         self.write_pid_file()
 
@@ -33,21 +34,21 @@ class Daemon(object):
         except OSError, e:
             logging.critical("fork() failed: %s (%s)\n" % (e.strerror, e.errno))
             os._exit(1)
-    
+
         os.setsid()
-    
+
         signal.signal(signal.SIGHUP, signal.SIG_IGN)
-    
+
         try:
             if os.fork() > 0:
                 os._exit(0)
         except OSError, e:
             logging.critical("fork() failed: %s (%s)\n" % (e.strerror, e.errno))
             os._exit(1)
-    
+
         os.chdir("/")
         os.umask(0)
-    
+
         sys.stdout.flush()
         sys.stderr.flush()
         si = file("/dev/null", "r")
@@ -63,7 +64,7 @@ class Daemon(object):
                 try:
                     fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
                 except IOError:
-                    return False # file is locked => another process is running
+                    return False  # file is locked => another process is running
         return True
 
     def write_pid_file(self):

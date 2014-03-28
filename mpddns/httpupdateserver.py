@@ -2,18 +2,20 @@ import BaseHTTPServer
 import logging
 import urlparse
 import threading
+import select
+
 
 class HTTPUpdateRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     server_version = "mpddns"
-    timeout = 1 # just an estimate
+    timeout = 1  # just an estimate
 
-    def log_message(self, format, *args):
+    def log_message(self, fmt, *args):
         pass
 
     def do_GET(self):
         parsed_url = urlparse.urlparse(self.path)
         parsed_query = urlparse.parse_qs(parsed_url.query)
-        
+
         if ("domain" not in parsed_query) or ("password" not in parsed_query) or ("ip" not in parsed_query):
             self.send_response(400)
         else:
@@ -28,6 +30,7 @@ class HTTPUpdateRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 self.send_response(404)
 
             self.end_headers()
+
 
 class HTTPUpdateServer(threading.Thread):
     timeout = 0.1
@@ -46,7 +49,7 @@ class HTTPUpdateServer(threading.Thread):
             try:
                 self.server.handle_request()
             except select.error:
-                pass # ignoring it, happens when select call will be interrupted by user change
+                pass  # ignoring it, happens when select call will be interrupted by user change
             except:
                 logging.exception("Unhandled exception in HTTP update server loop")
 

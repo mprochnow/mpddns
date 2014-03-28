@@ -1,8 +1,10 @@
 import argparse
 import ConfigParser
 
+
 class ConfigError(Exception):
     pass
+
 
 class DefaultConfigParser(ConfigParser.RawConfigParser):
     def get(self, section, option, default=None):
@@ -10,18 +12,19 @@ class DefaultConfigParser(ConfigParser.RawConfigParser):
             return ConfigParser.RawConfigParser.get(self, section, option)
         else:
             return default
-    
+
     def getboolean(self, section, option, default=None):
         if self.has_option(section, option):
             return ConfigParser.RawConfigParser.getboolean(self, section, option)
         else:
             return default
 
-    def getint(self, section, option, default = None):
+    def getint(self, section, option, default=None):
         if self.has_option(section, option):
             return ConfigParser.RawConfigParser.getint(self, section, option)
         else:
             return default
+
 
 class Config:
     def __init__(self):
@@ -51,7 +54,7 @@ class Config:
         self.group = parser.get("mpddns", "group", "nogroup")
         self.pid_file = parser.get("mpddns", "pid_file", "/var/run/mpddns.pid")
         self.cache_file = parser.get("mpddns", "cache_file", "/tmp/mpddns.cache")
-        
+
         self.dns_server = (parser.get("dns_server", "bind", "0.0.0.0"),
                            parser.getint("dns_server", "port", 53))
 

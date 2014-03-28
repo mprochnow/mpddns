@@ -1,16 +1,18 @@
 import json
 import logging
 
+
 class CatalogEntry:
     def __init__(self, password):
         self.password = password
         self.ip = None
 
+
 class Catalog:
     def __init__(self, data, cacheFile):
         self.catalog = {}
         self.cacheFile = cacheFile
-        
+
         for domain, password in data.iteritems():
             self.catalog[domain] = CatalogEntry(password)
 

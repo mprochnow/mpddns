@@ -5,6 +5,7 @@ import threading
 
 import dns
 
+
 class DnsRequestHandler(SocketServer.BaseRequestHandler):
     def handle(self):
         data = self.request[0]
@@ -14,7 +15,7 @@ class DnsRequestHandler(SocketServer.BaseRequestHandler):
 
         if not dns_query.valid:
             logging.error("%s - Received invalid request" % (self.client_address[0]))
-            dns_query_response = dns_query.response(dns.Rcode.FormatError);
+            dns_query_response = dns_query.response(dns.Rcode.FormatError)
         elif not len(dns_query.questions):
             logging.error("%s - Received request without question" % (self.client_address[0]))
             dns_query_response = dns_query.response(dns.Rcode.Refused)
@@ -32,6 +33,7 @@ class DnsRequestHandler(SocketServer.BaseRequestHandler):
 
         socket.sendto(dns_query_response, self.client_address)
 
+
 class DnsServer(threading.Thread):
     def __init__(self, address, catalog):
         threading.Thread.__init__(self)
@@ -47,10 +49,9 @@ class DnsServer(threading.Thread):
             try:
                 self.server.handle_request()
             except select.error:
-                pass # ignoring it, happens when select call will be interrupted by user change
+                pass  # ignoring it, happens when select call will be interrupted by user change
             except:
                 logging.exception("Unhandled exception in DNS server loop")
-    
+
     def stop(self):
         self.cancel = True
-
