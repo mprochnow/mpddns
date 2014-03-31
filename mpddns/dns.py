@@ -17,9 +17,9 @@ import struct
 
 
 class Opcode:
-    Standard = 0
-    Inverse = 1
-    ServerStatus = 2
+    STANDARD = 0
+    INVERSE = 1
+    SERVER_STATUS = 2
 
 
 class Type:
@@ -42,12 +42,12 @@ class Class:
 
 
 class Rcode:
-    NoError = 0
-    FormatError = 1  # Unable to interpret query
-    ServerFailure = 2  # Unable to process query because of internal problems
-    NameError = 3  # Queried domain name does not exists
-    NotImplemented = 4  # Requested query not supported
-    Refused = 5  # Server refuses to process query
+    NO_ERROR = 0
+    FORMAT_ERROR = 1  # Unable to interpret query
+    SERVER_FAILURE = 2  # Unable to process query because of internal problems
+    NAME_ERROR = 3  # Queried domain name does not exists
+    NOT_IMPLEMENTED = 4  # Requested query not supported
+    REFUSED = 5  # Server refuses to process query
 
 
 class Header:
@@ -127,14 +127,14 @@ class DnsQuery:
         result += Header.Format.pack(self.header.id,  # id
                                      0x8400 | (rcode & 0x0f),  # header
                                      0x0001 if question else 0x0000,  # qdcount
-                                     0x0001 if rcode == Rcode.NoError else 0x0000,  # ancount
+                                     0x0001 if rcode == Rcode.NO_ERROR else 0x0000,  # ancount
                                      0x0000,  # nscount
                                      0x0000)  # arcount
 
         if question:
             result += question.get()
 
-        if rcode == Rcode.NoError:
+        if rcode == Rcode.NO_ERROR:
             result += struct.pack(">HHHLH",
                                   0xc000 | 0x000c,  # pointer to domain name
                                   Type.A,
