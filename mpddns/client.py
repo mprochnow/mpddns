@@ -21,7 +21,8 @@ import optparse
 import socket
 import syslog
 
-if __name__ == '__main__':
+
+def main():
     syslog.openlog("mpddns_client")
 
     parser = optparse.OptionParser()
@@ -54,3 +55,6 @@ if __name__ == '__main__':
     s.close()
 
     syslog.syslog("Updated mpddns server")
+
+if __name__ == '__main__':
+    main()

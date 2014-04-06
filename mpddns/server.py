@@ -22,38 +22,39 @@ import pwd
 import signal
 import sys
 
-from mpddns.catalog import Catalog
-from mpddns.config import Config, ConfigError
-from mpddns.daemon import Daemon
-from mpddns.dnsserver import DnsServer
-from mpddns.updateserver import UpdateServer
-from mpddns.httpupdateserver import HTTPUpdateServer
+from catalog import Catalog
+from config import Config, ConfigError
+from daemon import Daemon
+from dnsserver import DnsServer
+from updateserver import UpdateServer
+from httpupdateserver import HTTPUpdateServer
 
 LOG_CONFIG = {"version": 1,
               "disable_existing_loggers": False,
-              "handlers": {"default": {"class": "logging.StreamHandler"},
-                           "syslog": {"class": "logging.handlers.SysLogHandler",
+              "handlers": {"syslog": {"class": "logging.handlers.SysLogHandler",
                                       "address": "/dev/log",
                                       "facility": "daemon"}},
               "loggers": {"": {"level": "DEBUG",
-                               "handlers": ["default"]}}}
+                               "handlers": ["syslog"]}}}
 
 
 class Main(object):
     def __init__(self):
-        try:
-            self.config = Config()
-        except ConfigError, e:
-            sys.stderr.write("Error in config file - %s\n" % str(e))
-
-        logging.config.dictConfig(LOG_CONFIG)
+        pass
 
     def start(self):
         try:
-            with Daemon(self.config.pid_file):
-                self.run()
-        except RuntimeError, e:
-            sys.stderr.write('%s' % str(e))
+            self.config = Config()
+        except ConfigError, e:
+            sys.stderr.write("Error while reading config file - %s\n" % str(e))
+        else:
+            logging.config.dictConfig(LOG_CONFIG)
+
+            try:
+                with Daemon(self.config.pid_file):
+                    self.run()
+            except RuntimeError, e:
+                sys.stderr.write('%s' % str(e))
 
     def run(self):
         try:

@@ -13,7 +13,7 @@
 PATH=/bin:/usr/bin:/usr/local/sbin
 
 NAME=mpddns
-DAEMON=/opt/mpddns/server/mpddns.py
+DAEMON=/usr/local/bin/mpddns_server
 DAEMON_ARGS="-c /etc/mpddns/mpddns.conf"
 PIDFILE=/var/run/mpddns.pid
 
