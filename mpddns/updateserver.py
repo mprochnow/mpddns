@@ -23,6 +23,8 @@ import socket
 import SocketServer
 import threading
 
+logger = logging.getLogger("mpddns")
+
 
 class UpdateRequestHandler(SocketServer.BaseRequestHandler):
     timeout = 1  # just an estimate
@@ -75,7 +77,7 @@ class UpdateServer(threading.Thread):
             except select.error:
                 pass  # ignoring it, happens when select call will be interrupted by user change
             except:
-                logging.exception("Unhandled exception in update server loop")
+                logger.exception("Unhandled exception in update server loop")
 
     def stop(self):
         self.cancel = True

@@ -16,6 +16,8 @@
 import json
 import logging
 
+logger = logging.getLogger("mpddns")
+
 
 class CatalogEntry:
     def __init__(self, password):
@@ -47,13 +49,13 @@ class Catalog:
         entry = self.catalog.get(domain)
         if entry and entry.ip != ip:
             entry.ip = ip
-            logging.info("Updated '%s' with '%s'" % (domain, ip))
+            logger.info("Updated '%s' with '%s'" % (domain, ip))
 
             try:
                 with open(self.cacheFile, "w") as f:
                     json.dump({domain: entry.ip for domain, entry in self.catalog.iteritems()}, f)
             except:
-                logging.exception("Unhandled exception while writing cache file")
+                logger.exception("Unhandled exception while writing cache file")
 
     def get_ip(self, domain):
         entry = self.catalog.get(domain.lower())

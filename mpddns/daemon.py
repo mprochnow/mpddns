@@ -19,6 +19,8 @@ import os.path
 import signal
 import sys
 
+logger = logging.getLogger("mpddns")
+
 
 class Daemon(object):
     def __init__(self, pidfile=None):
@@ -47,7 +49,7 @@ class Daemon(object):
             if os.fork() > 0:
                 os._exit(0)
         except OSError, e:
-            logging.critical("fork() failed: %s (%s)\n" % (e.strerror, e.errno))
+            logger.critical("fork() failed: %s (%s)\n" % (e.strerror, e.errno))
             os._exit(1)
 
         os.setsid()
@@ -58,7 +60,7 @@ class Daemon(object):
             if os.fork() > 0:
                 os._exit(0)
         except OSError, e:
-            logging.critical("fork() failed: %s (%s)\n" % (e.strerror, e.errno))
+            logger.critical("fork() failed: %s (%s)\n" % (e.strerror, e.errno))
             os._exit(1)
 
         os.chdir("/")
@@ -90,4 +92,4 @@ class Daemon(object):
                 self.lockfile.write("%s" % str(os.getpid()))
                 self.lockfile.flush()
             except:
-                logging.error("Writing pid file %s failed" % self.pidfile)
+                logger.error("Writing pid file %s failed" % self.pidfile)

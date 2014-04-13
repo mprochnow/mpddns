@@ -19,6 +19,8 @@ import urlparse
 import threading
 import select
 
+logger = logging.getLogger("mpddns")
+
 
 class HTTPUpdateRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     server_version = "mpddns"
@@ -66,7 +68,7 @@ class HTTPUpdateServer(threading.Thread):
             except select.error:
                 pass  # ignoring it, happens when select call will be interrupted by user change
             except:
-                logging.exception("Unhandled exception in HTTP update server loop")
+                logger.exception("Unhandled exception in HTTP update server loop")
 
     def stop(self):
         self.cancel = True

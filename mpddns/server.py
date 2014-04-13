@@ -31,11 +31,15 @@ from httpupdateserver import HTTPUpdateServer
 
 LOG_CONFIG = {"version": 1,
               "disable_existing_loggers": False,
+              "formatters": {"syslog": {"format": "%(name)s[%(process)d]: %(message)s"}},
               "handlers": {"syslog": {"class": "logging.handlers.SysLogHandler",
                                       "address": "/dev/log",
-                                      "facility": "daemon"}},
-              "loggers": {"": {"level": "DEBUG",
-                               "handlers": ["syslog"]}}}
+                                      "facility": "daemon",
+                                      "formatter": "syslog"}},
+              "loggers": {"mpddns": {"level": "DEBUG",
+                                     "handlers": ["syslog"]}}}
+
+logger = logging.getLogger("mpddns")
 
 
 class Main(object):
@@ -48,8 +52,6 @@ class Main(object):
         except ConfigError, e:
             sys.stderr.write("Error while reading config file - %s\n" % str(e))
         else:
-            logging.config.dictConfig(LOG_CONFIG)
-
             try:
                 with Daemon(self.config.pid_file):
                     self.run()
@@ -58,7 +60,9 @@ class Main(object):
 
     def run(self):
         try:
-            logging.info("Starting mpddns server (pid: %s)" % os.getpid())
+            logging.config.dictConfig(LOG_CONFIG)
+
+            logger.info("Starting mpddns server")
 
             catalog = Catalog(self.config.catalog, self.config.cache_file)
 
@@ -82,9 +86,9 @@ class Main(object):
             signal.signal(signal.SIGTERM, self.handleSignals)
             signal.pause()
 
-            logging.info("Stopping mpddns server")
+            logger.info("Stopping mpddns server")
         except:
-            logging.exception("Unhandled exception during start-up")
+            logger.exception("Unhandled exception during start-up")
 
     def handleSignals(self, signum, frame):
         self.dns_srv.stop()
@@ -96,14 +100,14 @@ class Main(object):
     def change_user_group(self, user="nobody", group="nogroup"):
         if user and group:
             if os.getuid() != 0:
-                logging.error("Not running as root, cannot change user/group")
+                logger.error("Not running as root, cannot change user/group")
                 return
 
             try:
                 uid = pwd.getpwnam(user).pw_uid
                 gid = grp.getgrnam(group).gr_gid
             except KeyError:
-                logging.error("User %s or group %s not found, will not change user/group" % (user, group))
+                logger.error("User %s or group %s not found, will not change user/group" % (user, group))
                 return
 
             try:
@@ -111,10 +115,10 @@ class Main(object):
                 os.setgid(gid)
                 os.setuid(uid)
             except OSError, e:
-                logging.error("An error occurred while changing user/group - %s (%d)" % (e.strerror, e.errno))
+                logger.error("An error occurred while changing user/group - %s (%d)" % (e.strerror, e.errno))
                 return
 
-            logging.info("Changed user/group to %s/%s" % (user, group))
+            logger.info("Changed user/group to %s/%s" % (user, group))
 
 if __name__ == "__main__":
     Main().start()

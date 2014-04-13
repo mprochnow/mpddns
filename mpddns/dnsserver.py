@@ -20,6 +20,8 @@ import threading
 
 import dns
 
+logger = logging.getLogger("mpddns")
+
 
 class DnsRequestHandler(SocketServer.BaseRequestHandler):
     def handle(self):
@@ -29,10 +31,10 @@ class DnsRequestHandler(SocketServer.BaseRequestHandler):
         dns_query = dns.DnsQuery(data)
 
         if not dns_query.valid:
-            logging.error("%s - Received invalid request" % (self.client_address[0]))
+            logger.error("%s - Received invalid request" % (self.client_address[0]))
             dns_query_response = dns_query.response(dns.Rcode.FORMAT_ERROR)
         elif not len(dns_query.questions):
-            logging.error("%s - Received request without question" % (self.client_address[0]))
+            logger.error("%s - Received request without question" % (self.client_address[0]))
             dns_query_response = dns_query.response(dns.Rcode.REFUSED)
         else:
             question = dns_query.questions[0]
@@ -40,10 +42,10 @@ class DnsRequestHandler(SocketServer.BaseRequestHandler):
             ip = self.server.catalog.get_ip(question.qname[:-1])
 
             if not ip:
-                logging.info("%s - No IP for '%s' found" % (self.client_address[0], question.qname[:-1]))
+                logger.info("%s - No IP for '%s' found" % (self.client_address[0], question.qname[:-1]))
                 dns_query_response = dns_query.response(dns.Rcode.NAME_ERROR, question)
             else:
-                logging.info("%s - Found IP '%s' for '%s'" % (self.client_address[0], ip, question.qname[:-1]))
+                logger.info("%s - Found IP '%s' for '%s'" % (self.client_address[0], ip, question.qname[:-1]))
                 dns_query_response = dns_query.response(dns.Rcode.NO_ERROR, question, ip)
 
         socket.sendto(dns_query_response, self.client_address)
@@ -66,7 +68,7 @@ class DnsServer(threading.Thread):
             except select.error:
                 pass  # ignoring it, happens when select call will be interrupted by user change
             except:
-                logging.exception("Unhandled exception in DNS server loop")
+                logger.exception("Unhandled exception in DNS server loop")
 
     def stop(self):
         self.cancel = True
