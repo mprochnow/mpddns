@@ -17,13 +17,25 @@
 
 import hashlib
 import hmac
+import logging.config
 import optparse
 import socket
-import syslog
+
+LOG_CONFIG = {"version": 1,
+              "disable_existing_loggers": False,
+              "formatters": {"syslog": {"format": "%(name)s[%(process)d]: %(message)s"}},
+              "handlers": {"syslog": {"class": "logging.handlers.SysLogHandler",
+                                      "address": "/dev/log",
+                                      "facility": "daemon",
+                                      "formatter": "syslog"}},
+              "loggers": {"mpddns_client": {"level": "DEBUG",
+                                            "handlers": ["syslog"]}}}
 
 
 def main():
-    syslog.openlog("mpddns_client")
+    logging.config.dictConfig(LOG_CONFIG)
+
+    logger = logging.getLogger("mpddns_client")
 
     parser = optparse.OptionParser()
     parser.add_option("-s", "--server", help="Host of mpddns server")
@@ -46,15 +58,19 @@ def main():
         portnum = int(port)
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((server, portnum))
-    d = s.recv(1024)
 
-    digest = hmac.new(password, d[:-2], hashlib.sha256).hexdigest()
+    try:
+        s.connect((server, portnum))
+        d = s.recv(1024)
 
-    s.sendall(host + " " + digest + "\r\n")
-    s.close()
+        digest = hmac.new(password, d[:-2], hashlib.sha256).hexdigest()
 
-    syslog.syslog("Updated mpddns server")
+        s.sendall(host + " " + digest + "\r\n")
+        s.close()
 
-if __name__ == '__main__':
+        logger.info("Updated mpddns server")
+    except socket.error, e:
+        logger.error("Error while connecting to server: %s" % e.strerror)
+
+if __name__ == "__main__":
     main()
