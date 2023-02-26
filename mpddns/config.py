@@ -14,31 +14,11 @@
 # along with mpddns.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
-import ConfigParser
+import configparser
 
 
 class ConfigError(Exception):
     pass
-
-
-class DefaultConfigParser(ConfigParser.RawConfigParser):
-    def get(self, section, option, default=None):
-        if self.has_option(section, option):
-            return ConfigParser.RawConfigParser.get(self, section, option)
-        else:
-            return default
-
-    def getboolean(self, section, option, default=None):
-        if self.has_option(section, option):
-            return ConfigParser.RawConfigParser.getboolean(self, section, option)
-        else:
-            return default
-
-    def getint(self, section, option, default=None):
-        if self.has_option(section, option):
-            return ConfigParser.RawConfigParser.getint(self, section, option)
-        else:
-            return default
 
 
 class Config:
@@ -57,31 +37,28 @@ class Config:
         self.config_file = results.c
 
     def parse_config_file(self):
-        parser = DefaultConfigParser()
+        parser = configparser.ConfigParser()
 
         try:
             if not parser.read(self.config_file):
                 raise ConfigError("Unable to open file '%s'" % self.config_file)
-        except ConfigParser.Error:
+        except configparser.Error:
             raise ConfigError("File '%s' seems to be an invalid config file" % self.config_file)
 
-        self.user = parser.get("mpddns", "user", "nobody")
-        self.group = parser.get("mpddns", "group", "nogroup")
-        self.pid_file = parser.get("mpddns", "pid_file", "/var/run/mpddns.pid")
-        self.cache_file = parser.get("mpddns", "cache_file", "/tmp/mpddns.cache")
+        self.cache_file = parser.get("mpddns", "cache_file", fallback="/tmp/mpddns.cache")
 
-        self.dns_server = (parser.get("dns_server", "bind", "0.0.0.0"),
-                           parser.getint("dns_server", "port", 53))
+        self.dns_server = (parser.get("dns_server", "bind", fallback="0.0.0.0"),
+                           parser.getint("dns_server", "port", fallback=53))
 
-        if parser.getboolean("update_server", "enabled", True):
-            self.update_server = (parser.get("update_server", "bind", "0.0.0.0"),
-                                  parser.getint("update_server", "port", 7331))
+        if parser.getboolean("update_server", "enabled", fallback=True):
+            self.update_server = (parser.get("update_server", "bind", fallback="0.0.0.0"),
+                                  parser.getint("update_server", "port", fallback=7331))
         else:
             self.update_server = None
 
-        if parser.getboolean("http_update_server", "enabled", False):
-            self.http_update_server = (parser.get("http_update_server", "bind", "0.0.0.0"),
-                                       parser.getint("http_update_server", "port", 8000))
+        if parser.getboolean("http_update_server", "enabled", fallback=False):
+            self.http_update_server = (parser.get("http_update_server", "bind", fallback="0.0.0.0"),
+                                       parser.getint("http_update_server", "port", fallback=8000))
         else:
             self.http_update_server = None
 

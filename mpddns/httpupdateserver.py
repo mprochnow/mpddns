@@ -13,16 +13,16 @@
 # You should have received a copy of the GNU General Public License
 # along with mpddns.  If not, see <http://www.gnu.org/licenses/>.
 
-import BaseHTTPServer
+import http.server
 import logging
-import urlparse
+import urllib.parse
 import threading
 import select
 
 logger = logging.getLogger("mpddns")
 
 
-class HTTPUpdateRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+class HTTPUpdateRequestHandler(http.server.BaseHTTPRequestHandler):
     server_version = "mpddns"
     timeout = 1  # just an estimate
 
@@ -30,8 +30,8 @@ class HTTPUpdateRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         pass
 
     def do_GET(self):
-        parsed_url = urlparse.urlparse(self.path)
-        parsed_query = urlparse.parse_qs(parsed_url.query)
+        parsed_url = urllib.parse.urlparse(self.path)
+        parsed_query = urllib.parse.parse_qs(parsed_url.query)
 
         if ("domain" not in parsed_query) or ("password" not in parsed_query) or ("ip" not in parsed_query):
             self.send_response(400)
@@ -55,7 +55,7 @@ class HTTPUpdateServer(threading.Thread):
     def __init__(self, address, catalog):
         threading.Thread.__init__(self)
 
-        self.server = BaseHTTPServer.HTTPServer(address, HTTPUpdateRequestHandler)
+        self.server = http.server.HTTPServer(address, HTTPUpdateRequestHandler)
         self.server.socket.settimeout(self.timeout)
         self.server.catalog = catalog
 
@@ -67,8 +67,8 @@ class HTTPUpdateServer(threading.Thread):
                 self.server.handle_request()
             except select.error:
                 pass  # ignoring it, happens when select call will be interrupted by user change
-            except:
-                logger.exception("Unhandled exception in HTTP update server loop")
+            except Exception as e:
+                logger.error(f"Unhandled exception in HTTP update server loop: {e}")
 
     def stop(self):
         self.cancel = True

@@ -26,21 +26,21 @@ class CatalogEntry:
 
 
 class Catalog:
-    def __init__(self, data, cacheFile):
+    def __init__(self, data, cache_file):
         self.catalog = {}
-        self.cacheFile = cacheFile
+        self.cache_file = cache_file
 
-        for domain, password in data.iteritems():
+        for domain, password in data.items():
             self.catalog[domain] = CatalogEntry(password)
 
-        cacheData = {}
+        cache_data = {}
         try:
-            with open(self.cacheFile, "r") as f:
-                cacheData = json.load(f)
-        except:
-            pass
+            with open(self.cache_file, "r") as f:
+                cache_data = json.load(f)
+        except (OSError, json.JSONDecodeError) as e:
+            logger.warning(f"Error while opening '{cache_file}': {e}")
 
-        for domain, ip in cacheData.iteritems():
+        for domain, ip in cache_data.items():
             self.update_ip(domain, ip)
 
     def update_ip(self, domain, ip):
@@ -52,9 +52,9 @@ class Catalog:
             logger.info("Updated '%s' with '%s'" % (domain, ip))
 
             try:
-                with open(self.cacheFile, "w") as f:
-                    json.dump({domain: entry.ip for domain, entry in self.catalog.iteritems()}, f)
-            except:
+                with open(self.cache_file, "w") as f:
+                    json.dump({domain: entry.ip for domain, entry in self.catalog.items()}, f)
+            except (OSError, json.JSONDecodeError):
                 logger.exception("Unhandled exception while writing cache file")
 
     def get_ip(self, domain):

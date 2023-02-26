@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 setup(name="mpddns",
-      version="0.8.0",
+      version="0.9.0",
       description="mpddns",
       long_description="A simple service to run your own dynamic DNS",
       author="Martin J. Prochnow",

@@ -63,14 +63,15 @@ def main():
         s.connect((server, portnum))
         d = s.recv(1024)
 
-        digest = hmac.new(password, d[:-2], hashlib.sha256).hexdigest()
+        digest = hmac.new(password.encode('ascii'), d[:-2], hashlib.sha256).hexdigest()
 
-        s.sendall(host + " " + digest + "\r\n")
+        s.sendall((host + " " + digest + "\r\n").encode('ascii'))
         s.close()
 
         logger.info("Updated mpddns server")
-    except socket.error, e:
+    except socket.error as e:
         logger.error("Error while connecting to server: %s" % e.strerror)
+
 
 if __name__ == "__main__":
     main()

@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with mpddns.  If not, see <http://www.gnu.org/licenses/>.
 
+import ipaddress
 import struct
 
 
@@ -81,7 +82,7 @@ class Question:
                 break
 
             label = struct.unpack_from(">%ds" % length, data, offset)
-            qname += label[0] + "."
+            qname += label[0].decode("ascii") + "."
 
             offset += length
 
@@ -92,8 +93,7 @@ class Question:
         self.qclass = qclass
 
     def get(self):
-        result = ''
-        result += ''.join([chr(len(x)) + x for x in self.qname.split('.')])
+        result = ''.join([chr(len(x)) + x for x in self.qname.split('.')]).encode('ascii')
         result += DnsQuery.QuerySectionFormat.pack(self.qtype, self.qclass)
 
         return result
@@ -122,28 +122,25 @@ class DnsQuery:
                 self.valid = True
 
     def response(self, rcode, question=None, ip=None):
-        result = ''
-
-        result += Header.Format.pack(self.header.id,  # id
-                                     0x8400 | (rcode & 0x0f),  # header
-                                     0x0001 if question else 0x0000,  # qdcount
-                                     0x0001 if rcode == Rcode.NO_ERROR else 0x0000,  # ancount
-                                     0x0000,  # nscount
-                                     0x0000)  # arcount
+        result = Header.Format.pack(self.header.id,  # id
+                                    0x8400 | (rcode & 0x0f),  # header
+                                    0x0001 if question else 0x0000,  # qdcount
+                                    0x0001 if rcode == Rcode.NO_ERROR else 0x0000,  # ancount
+                                    0x0000,  # nscount
+                                    0x0000)  # arcount
 
         if question:
             result += question.get()
 
         if rcode == Rcode.NO_ERROR:
-            result += struct.pack(">HHHLH",
-                                  0xc000 | 0x000c,  # pointer to domain name
-                                  Type.A,
-                                  Class.IN,
-                                  0x00000000,  # ttl
-                                  0x0004)  # rdlength
-
-            # A record
-            for part in ip.split('.'):
-                result += chr(int(part))
+            result += struct.pack(
+                ">HHHLHL",
+                0xc000 | 0x000c,  # pointer to domain name
+                Type.A,
+                Class.IN,
+                0x00000000,  # ttl
+                0x0004,  # rdlength
+                int(ipaddress.IPv4Address(ip))  # A record
+            )
 
         return result

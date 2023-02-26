@@ -20,13 +20,13 @@ import logging
 import os
 import select
 import socket
-import SocketServer
+import socketserver
 import threading
 
 logger = logging.getLogger("mpddns")
 
 
-class UpdateRequestHandler(SocketServer.BaseRequestHandler):
+class UpdateRequestHandler(socketserver.BaseRequestHandler):
     timeout = 1  # just an estimate
 
     def setup(self):
@@ -36,11 +36,13 @@ class UpdateRequestHandler(SocketServer.BaseRequestHandler):
     def handle(self):
         challenge = binascii.b2a_hex(os.urandom(15))
 
-        self.request.sendall(challenge + "\r\n")
+        self.request.sendall(challenge + "\r\n".encode('ascii'))
 
         try:
-            response = self.request.recv(1024)
+            response = self.request.recv(1024).decode('ascii')
         except socket.timeout:
+            pass
+        except ValueError:
             pass
         else:
             pos = response.find(" ")
@@ -55,7 +57,7 @@ class UpdateRequestHandler(SocketServer.BaseRequestHandler):
                     if len(digest):
                         password = str(self.server.catalog.get_password(domain))
 
-                        if hmac.new(password, challenge, hashlib.sha256).hexdigest() == digest:
+                        if hmac.new(password.encode('ascii'), challenge, hashlib.sha256).hexdigest() == digest:
                             self.server.catalog.update_ip(domain, self.client_address[0])
 
 
@@ -63,8 +65,8 @@ class UpdateServer(threading.Thread):
     def __init__(self, address, catalog):
         threading.Thread.__init__(self)
 
-        SocketServer.TCPServer.allow_reuse_address = True
-        self.server = SocketServer.TCPServer(address, UpdateRequestHandler)
+        socketserver.TCPServer.allow_reuse_address = True
+        self.server = socketserver.TCPServer(address, UpdateRequestHandler)
         self.server.timeout = 0.1
         self.server.catalog = catalog
 

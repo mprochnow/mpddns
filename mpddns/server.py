@@ -49,46 +49,52 @@ class Main(object):
     def start(self):
         try:
             self.config = Config()
-        except ConfigError, e:
+        except ConfigError as e:
             sys.stderr.write("Error while reading config file - %s\n" % str(e))
         else:
-            try:
-                with Daemon(self.config.pid_file):
-                    self.run()
-            except RuntimeError, e:
-                sys.stderr.write('%s' % str(e))
+            self.run()
 
     def run(self):
+        logging.config.dictConfig(LOG_CONFIG)
+
+        logger.info("Starting mpddns server")
+
+        catalog = Catalog(self.config.catalog, self.config.cache_file)
+
+        self.dns_srv = DnsServer(self.config.dns_server, catalog)
+        self.dns_srv.start()
+
+        if self.config.update_server:
+            self.update_srv = UpdateServer(self.config.update_server, catalog)
+            self.update_srv.start()
+        else:
+            self.update_srv = None
+
+        if self.config.http_update_server:
+            self.http_update_srv = HTTPUpdateServer(self.config.http_update_server, catalog)
+            self.http_update_srv.start()
+        else:
+            self.http_update_srv = None
+
         try:
-            logging.config.dictConfig(LOG_CONFIG)
-
-            logger.info("Starting mpddns server")
-
-            catalog = Catalog(self.config.catalog, self.config.cache_file)
-
-            self.dns_srv = DnsServer(self.config.dns_server, catalog)
-            self.dns_srv.start()
+            self.dns_srv.join()
 
             if self.config.update_server:
-                self.update_srv = UpdateServer(self.config.update_server, catalog)
-                self.update_srv.start()
-            else:
-                self.update_srv = None
+                self.update_srv.join()
 
             if self.config.http_update_server:
-                self.http_update_srv = HTTPUpdateServer(self.config.http_update_server, catalog)
-                self.http_update_srv.start()
-            else:
-                self.http_update_srv = None
+                self.http_update_srv.join()
 
-            self.change_user_group(self.config.user, self.config.group)
+        except KeyboardInterrupt:
+            self.dns_srv.stop()
 
-            signal.signal(signal.SIGTERM, self.handleSignals)
-            signal.pause()
+            if self.config.update_server:
+                self.update_srv.stop()
 
-            logger.info("Stopping mpddns server")
-        except:
-            logger.exception("Unhandled exception during start-up")
+            if self.config.http_update_server:
+                self.http_update_srv.stop()
+
+        logger.info("Stopping mpddns server")
 
     def handleSignals(self, signum, frame):
         self.dns_srv.stop()
@@ -97,28 +103,6 @@ class Main(object):
         if self.http_update_srv:
             self.http_update_srv.stop()
 
-    def change_user_group(self, user="nobody", group="nogroup"):
-        if user and group:
-            if os.getuid() != 0:
-                logger.error("Not running as root, cannot change user/group")
-                return
-
-            try:
-                uid = pwd.getpwnam(user).pw_uid
-                gid = grp.getgrnam(group).gr_gid
-            except KeyError:
-                logger.error("User %s or group %s not found, will not change user/group" % (user, group))
-                return
-
-            try:
-                os.setgroups([])
-                os.setgid(gid)
-                os.setuid(uid)
-            except OSError, e:
-                logger.error("An error occurred while changing user/group - %s (%d)" % (e.strerror, e.errno))
-                return
-
-            logger.info("Changed user/group to %s/%s" % (user, group))
 
 if __name__ == "__main__":
     Main().start()
