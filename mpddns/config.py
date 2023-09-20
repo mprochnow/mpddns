@@ -23,6 +23,12 @@ class ConfigError(Exception):
 
 class Config:
     def __init__(self):
+        self.catalog = None
+        self.update_server = None
+        self.dns_server = None
+        self.cache_file = None
+        self.config_file = None
+        self.http_update_server = None
         self.parse_cmd_line()
         self.parse_config_file()
 

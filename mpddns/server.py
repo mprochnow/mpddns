@@ -15,16 +15,11 @@
 # You should have received a copy of the GNU General Public License
 # along with mpddns.  If not, see <http://www.gnu.org/licenses/>.
 
-import grp
 import logging.config
-import os
-import pwd
-import signal
 import sys
 
 from catalog import Catalog
 from config import Config, ConfigError
-from daemon import Daemon
 from dnsserver import DnsServer
 from updateserver import UpdateServer
 from httpupdateserver import HTTPUpdateServer
@@ -44,7 +39,9 @@ logger = logging.getLogger("mpddns")
 
 class Main(object):
     def __init__(self):
-        pass
+        self.http_update_srv = None
+        self.update_srv = None
+        self.dns_srv = None
 
     def start(self):
         try:
@@ -95,13 +92,6 @@ class Main(object):
                 self.http_update_srv.stop()
 
         logger.info("Stopping mpddns server")
-
-    def handleSignals(self, signum, frame):
-        self.dns_srv.stop()
-        if self.update_srv:
-            self.update_srv.stop()
-        if self.http_update_srv:
-            self.http_update_srv.stop()
 
 
 if __name__ == "__main__":
