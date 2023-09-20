@@ -18,7 +18,7 @@ import select
 import socketserver
 import threading
 
-import dns
+from mpddns import dns
 
 logger = logging.getLogger("mpddns")
 

@@ -18,11 +18,11 @@
 import logging.config
 import sys
 
-from catalog import Catalog
-from config import Config, ConfigError
-from dnsserver import DnsServer
-from updateserver import UpdateServer
-from httpupdateserver import HTTPUpdateServer
+from mpddns.catalog import Catalog
+from mpddns.config import Config, ConfigError
+from mpddns.dnsserver import DnsServer
+from mpddns.updateserver import UpdateServer
+from mpddns.httpupdateserver import HTTPUpdateServer
 
 LOG_CONFIG = {"version": 1,
               "disable_existing_loggers": False,
