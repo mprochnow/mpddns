@@ -29,13 +29,13 @@ LOG_CONFIG = {
     "disable_existing_loggers": False,
     "formatters": {
         "console": {
-            "format": "%(asctime)s - %(levelname)s - %(name) - %(message)s"
+            "format": "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
         }
     },
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
-            "console": "syslog"
+            "formatter": "console"
         }
     },
     "loggers": {
