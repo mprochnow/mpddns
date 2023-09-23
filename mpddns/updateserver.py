@@ -23,7 +23,7 @@ import socket
 import socketserver
 import threading
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 class UpdateRequestHandler(socketserver.BaseRequestHandler):
@@ -79,7 +79,7 @@ class UpdateServer(threading.Thread):
             except select.error:
                 pass  # ignoring it, happens when select call will be interrupted by user change
             except:
-                logger.exception("Unhandled exception in update server loop")
+                log.exception("Unhandled exception in update server loop")
 
     def stop(self):
         self.cancel = True

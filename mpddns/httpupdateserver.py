@@ -19,7 +19,7 @@ import urllib.parse
 import threading
 import select
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 class HTTPUpdateRequestHandler(http.server.BaseHTTPRequestHandler):
@@ -68,7 +68,7 @@ class HTTPUpdateServer(threading.Thread):
             except select.error:
                 pass  # ignoring it, happens when select call will be interrupted by user change
             except Exception as e:
-                logger.error(f"Unhandled exception in HTTP update server loop: {e}")
+                log.error(f"Unhandled exception in HTTP update server loop: {e}")
 
     def stop(self):
         self.cancel = True

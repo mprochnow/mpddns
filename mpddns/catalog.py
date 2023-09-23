@@ -16,7 +16,7 @@
 import json
 import logging
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 class CatalogEntry:
@@ -38,7 +38,7 @@ class Catalog:
             with open(self.cache_file, "r") as f:
                 cache_data = json.load(f)
         except (OSError, json.JSONDecodeError) as e:
-            logger.warning(f"Error while opening '{cache_file}': {e}")
+            log.warning(f"Error while opening '{cache_file}': {e}")
 
         for domain, ip in cache_data.items():
             self.update_ip(domain, ip)
@@ -49,13 +49,13 @@ class Catalog:
         entry = self.catalog.get(domain)
         if entry and entry.ip != ip:
             entry.ip = ip
-            logger.info("Updated '%s' with '%s'" % (domain, ip))
+            log.info("Updated '%s' with '%s'" % (domain, ip))
 
             try:
                 with open(self.cache_file, "w") as f:
                     json.dump({domain: entry.ip for domain, entry in self.catalog.items()}, f)
             except (OSError, json.JSONDecodeError):
-                logger.exception("Unhandled exception while writing cache file")
+                log.exception("Unhandled exception while writing cache file")
 
     def get_ip(self, domain):
         entry = self.catalog.get(domain.lower())

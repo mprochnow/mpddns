@@ -31,12 +31,12 @@ LOG_CONFIG = {"version": 1,
               "loggers": {"mpddns_client": {"level": "DEBUG",
                                             "handlers": ["syslog"]}}}
 
+logging.config.dictConfig(LOG_CONFIG)
+
+log = logging.getLogger(__name__)
+
 
 def main():
-    logging.config.dictConfig(LOG_CONFIG)
-
-    logger = logging.getLogger(__name__)
-
     parser = optparse.OptionParser()
     parser.add_option("-s", "--server", help="Host of mpddns server")
     parser.add_option("-p", "--port", help="Port of mpddns server (default: 7331)")
@@ -68,9 +68,9 @@ def main():
         s.sendall((host + " " + digest + "\r\n").encode('ascii'))
         s.close()
 
-        logger.info("Updated mpddns server")
+        log.info("Updated mpddns server")
     except socket.error as e:
-        logger.error("Error while connecting to server: %s" % e.strerror)
+        log.error("Error while connecting to server: %s" % e.strerror)
 
 
 if __name__ == "__main__":

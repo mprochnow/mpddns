@@ -48,11 +48,14 @@ LOG_CONFIG = {
     }
 }
 
-logger = logging.getLogger(__name__)
+logging.config.dictConfig(LOG_CONFIG)
+
+log = logging.getLogger(__name__)
 
 
 class Main(object):
     def __init__(self):
+        self.config = None
         self.http_update_srv = None
         self.update_srv = None
         self.dns_srv = None
@@ -66,9 +69,7 @@ class Main(object):
             self.run()
 
     def run(self):
-        logging.config.dictConfig(LOG_CONFIG)
-
-        logger.info("Starting mpddns server")
+        log.info("Starting mpddns server")
 
         catalog = Catalog(self.config.catalog, self.config.cache_file)
 
@@ -105,7 +106,7 @@ class Main(object):
             if self.config.http_update_server:
                 self.http_update_srv.stop()
 
-        logger.info("Stopping mpddns server")
+        log.info("Stopping mpddns server")
 
 
 if __name__ == "__main__":

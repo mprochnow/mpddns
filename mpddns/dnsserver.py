@@ -22,7 +22,7 @@ import threading
 
 from mpddns import dns
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 class DnsRequestHandler(socketserver.BaseRequestHandler):
@@ -34,10 +34,10 @@ class DnsRequestHandler(socketserver.BaseRequestHandler):
             dns_query = dns.DnsQuery(data)
 
             if not dns_query.valid:
-                logger.error("%s - Received invalid request" % (self.client_address[0]))
+                log.error("%s - Received invalid request" % (self.client_address[0]))
                 dns_query_response = dns_query.response(dns.Rcode.FORMAT_ERROR)
             elif not len(dns_query.questions):
-                logger.error("%s - Received request without question" % (self.client_address[0]))
+                log.error("%s - Received request without question" % (self.client_address[0]))
                 dns_query_response = dns_query.response(dns.Rcode.REFUSED)
             else:
                 question = dns_query.questions[0]
@@ -45,15 +45,15 @@ class DnsRequestHandler(socketserver.BaseRequestHandler):
                 ip = self.server.catalog.get_ip(question.qname[:-1])
 
                 if not ip:
-                    logger.info("%s - No IP for '%s' found" % (self.client_address[0], question.qname[:-1]))
+                    log.info("%s - No IP for '%s' found" % (self.client_address[0], question.qname[:-1]))
                     dns_query_response = dns_query.response(dns.Rcode.NAME_ERROR, question)
                 else:
-                    logger.info("%s - Found IP '%s' for '%s'" % (self.client_address[0], ip, question.qname[:-1]))
+                    log.info("%s - Found IP '%s' for '%s'" % (self.client_address[0], ip, question.qname[:-1]))
                     dns_query_response = dns_query.response(dns.Rcode.NO_ERROR, question, ip)
 
             socket.sendto(dns_query_response, self.client_address)
         except struct.error as e:
-            logger.error(f"Error while parsing DNS query message ({binascii.b2a_hex(data)}): {e}")
+            log.error(f"Error while parsing DNS query message ({binascii.b2a_hex(data)}): {e}")
 
 
 class DnsServer(threading.Thread):
@@ -73,7 +73,7 @@ class DnsServer(threading.Thread):
             except select.error:
                 pass  # ignoring it, happens when select call will be interrupted by user change
             except Exception as e:
-                logger.error(f"Unhandled exception in DNS server loop: e")
+                log.error(f"Unhandled exception in DNS server loop: e")
 
     def stop(self):
         self.cancel = True
