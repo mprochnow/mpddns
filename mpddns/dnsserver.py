@@ -12,8 +12,10 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with mpddns.  If not, see <http://www.gnu.org/licenses/>.
-
+import binascii
 import logging
+import struct
+
 import select
 import socketserver
 import threading
@@ -28,27 +30,30 @@ class DnsRequestHandler(socketserver.BaseRequestHandler):
         data = self.request[0]
         socket = self.request[1]
 
-        dns_query = dns.DnsQuery(data)
+        try:
+            dns_query = dns.DnsQuery(data)
 
-        if not dns_query.valid:
-            logger.error("%s - Received invalid request" % (self.client_address[0]))
-            dns_query_response = dns_query.response(dns.Rcode.FORMAT_ERROR)
-        elif not len(dns_query.questions):
-            logger.error("%s - Received request without question" % (self.client_address[0]))
-            dns_query_response = dns_query.response(dns.Rcode.REFUSED)
-        else:
-            question = dns_query.questions[0]
-
-            ip = self.server.catalog.get_ip(question.qname[:-1])
-
-            if not ip:
-                logger.info("%s - No IP for '%s' found" % (self.client_address[0], question.qname[:-1]))
-                dns_query_response = dns_query.response(dns.Rcode.NAME_ERROR, question)
+            if not dns_query.valid:
+                logger.error("%s - Received invalid request" % (self.client_address[0]))
+                dns_query_response = dns_query.response(dns.Rcode.FORMAT_ERROR)
+            elif not len(dns_query.questions):
+                logger.error("%s - Received request without question" % (self.client_address[0]))
+                dns_query_response = dns_query.response(dns.Rcode.REFUSED)
             else:
-                logger.info("%s - Found IP '%s' for '%s'" % (self.client_address[0], ip, question.qname[:-1]))
-                dns_query_response = dns_query.response(dns.Rcode.NO_ERROR, question, ip)
+                question = dns_query.questions[0]
 
-        socket.sendto(dns_query_response, self.client_address)
+                ip = self.server.catalog.get_ip(question.qname[:-1])
+
+                if not ip:
+                    logger.info("%s - No IP for '%s' found" % (self.client_address[0], question.qname[:-1]))
+                    dns_query_response = dns_query.response(dns.Rcode.NAME_ERROR, question)
+                else:
+                    logger.info("%s - Found IP '%s' for '%s'" % (self.client_address[0], ip, question.qname[:-1]))
+                    dns_query_response = dns_query.response(dns.Rcode.NO_ERROR, question, ip)
+
+            socket.sendto(dns_query_response, self.client_address)
+        except struct.error as e:
+            logger.error(f"Error while parsing DNS query message ({binascii.b2a_hex(data)}): {e}")
 
 
 class DnsServer(threading.Thread):
