@@ -47,9 +47,9 @@ class Config:
 
         try:
             if not parser.read(self.config_file):
-                raise ConfigError("Unable to open file '%s'" % self.config_file)
+                raise ConfigError(f"Unable to open file {self.config_file}")
         except configparser.Error:
-            raise ConfigError("File '%s' seems to be an invalid config file" % self.config_file)
+            raise ConfigError(f"File '{self.config_file}' seems to be an invalid config file")
 
         self.cache_file = parser.get("mpddns", "cache_file", fallback="/tmp/mpddns.cache")
 
@@ -81,6 +81,6 @@ class Config:
         self.catalog = {}
         for domain, secret in catalog_items:
             if not secret:
-                raise ConfigError("No password for domain '%s' given" % domain)
+                raise ConfigError(f"No password for domain '{domain}' given")
 
             self.catalog[domain] = secret

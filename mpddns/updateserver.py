@@ -34,9 +34,12 @@ class UpdateRequestHandler(socketserver.BaseRequestHandler):
             self.request.settimeout(self.timeout)
 
     def handle(self):
+        log.debug(f"{self.request.client_address[0]} - Client opened connection")
+
         challenge = binascii.b2a_hex(os.urandom(15))
 
         self.request.sendall(challenge + "\r\n".encode('ascii'))
+        log.debug(f"{self.request.client_address[0]} - Challenge sent to client")
 
         try:
             response = self.request.recv(1024).decode('ascii')
@@ -45,6 +48,8 @@ class UpdateRequestHandler(socketserver.BaseRequestHandler):
         except ValueError:
             pass
         else:
+            log.debug(f"{self.request.client_address[0]} - Response received from client - {response}")
+
             pos = response.find(" ")
             if pos:
                 domain = response[:pos]

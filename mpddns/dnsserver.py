@@ -34,10 +34,10 @@ class DnsRequestHandler(socketserver.BaseRequestHandler):
             dns_query = dns.DnsQuery(data)
 
             if not dns_query.valid:
-                log.error("%s - Received invalid request" % (self.client_address[0]))
+                log.error(f"{self.client_address[0]} - Received invalid request")
                 dns_query_response = dns_query.response(dns.Rcode.FORMAT_ERROR)
             elif not len(dns_query.questions):
-                log.error("%s - Received request without question" % (self.client_address[0]))
+                log.error(f"{self.client_address[0]} - Received request without question")
                 dns_query_response = dns_query.response(dns.Rcode.REFUSED)
             else:
                 question = dns_query.questions[0]
@@ -45,15 +45,16 @@ class DnsRequestHandler(socketserver.BaseRequestHandler):
                 ip = self.server.catalog.get_ip(question.qname[:-1])
 
                 if not ip:
-                    log.info("%s - No IP for '%s' found" % (self.client_address[0], question.qname[:-1]))
+                    log.info(f"{self.client_address[0]} - No IP for '{question.qname[:-1]}' found")
                     dns_query_response = dns_query.response(dns.Rcode.NAME_ERROR, question)
                 else:
-                    log.info("%s - Found IP '%s' for '%s'" % (self.client_address[0], ip, question.qname[:-1]))
+                    log.info(f"{self.client_address[0]} - Found IP '{ip}' for '{question.qname[:-1]}'")
                     dns_query_response = dns_query.response(dns.Rcode.NO_ERROR, question, ip)
 
             socket.sendto(dns_query_response, self.client_address)
         except struct.error as e:
-            log.error(f"Error while parsing DNS query message ({binascii.b2a_hex(data)}): {e}")
+            log.error(f"{self.client_address[0]} - Error while parsing DNS query message "
+                      f"({binascii.b2a_hex(data)}): {e}")
 
 
 class DnsServer(threading.Thread):

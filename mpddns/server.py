@@ -16,7 +16,6 @@
 # along with mpddns.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging.config
-import sys
 
 from mpddns.catalog import Catalog
 from mpddns.config import Config, ConfigError
@@ -64,7 +63,7 @@ class Main(object):
         try:
             self.config = Config()
         except ConfigError as e:
-            sys.stderr.write("Error while reading config file - %s\n" % str(e))
+            log.error(f"Error while reading config file - {e}")
         else:
             self.run()
 

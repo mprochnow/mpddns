@@ -53,14 +53,14 @@ def main():
         parser.print_help()
         parser.exit()
 
-    portnum = 7331
+    port = 7331
     if port:
-        portnum = int(port)
+        port = int(port)
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     try:
-        s.connect((server, portnum))
+        s.connect((server, port))
         d = s.recv(1024)
 
         digest = hmac.new(password.encode('ascii'), d[:-2], hashlib.sha256).hexdigest()
@@ -70,7 +70,7 @@ def main():
 
         log.info("Updated mpddns server")
     except socket.error as e:
-        log.error("Error while connecting to server: %s" % e.strerror)
+        log.error(f"Error while connecting to server: {e}")
 
 
 if __name__ == "__main__":

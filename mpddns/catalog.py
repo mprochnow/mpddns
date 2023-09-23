@@ -49,7 +49,7 @@ class Catalog:
         entry = self.catalog.get(domain)
         if entry and entry.ip != ip:
             entry.ip = ip
-            log.info("Updated '%s' with '%s'" % (domain, ip))
+            log.info(f"Updated '{domain}' with '{ip}'")
 
             try:
                 with open(self.cache_file, "w") as f:
