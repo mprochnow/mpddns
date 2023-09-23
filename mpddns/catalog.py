@@ -16,7 +16,7 @@
 import json
 import logging
 
-logger = logging.getLogger("mpddns")
+logger = logging.getLogger(__name__)
 
 
 class CatalogEntry:

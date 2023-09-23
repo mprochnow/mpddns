@@ -20,7 +20,7 @@ import threading
 
 from mpddns import dns
 
-logger = logging.getLogger("mpddns")
+logger = logging.getLogger(__name__)
 
 
 class DnsRequestHandler(socketserver.BaseRequestHandler):

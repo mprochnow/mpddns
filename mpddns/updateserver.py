@@ -23,7 +23,7 @@ import socket
 import socketserver
 import threading
 
-logger = logging.getLogger("mpddns")
+logger = logging.getLogger(__name__)
 
 
 class UpdateRequestHandler(socketserver.BaseRequestHandler):

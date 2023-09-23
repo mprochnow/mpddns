@@ -24,17 +24,31 @@ from mpddns.dnsserver import DnsServer
 from mpddns.updateserver import UpdateServer
 from mpddns.httpupdateserver import HTTPUpdateServer
 
-LOG_CONFIG = {"version": 1,
-              "disable_existing_loggers": False,
-              "formatters": {"syslog": {"format": "%(name)s[%(process)d]: %(message)s"}},
-              "handlers": {"syslog": {"class": "logging.handlers.SysLogHandler",
-                                      "address": "/dev/log",
-                                      "facility": "daemon",
-                                      "formatter": "syslog"}},
-              "loggers": {"mpddns": {"level": "DEBUG",
-                                     "handlers": ["syslog"]}}}
+LOG_CONFIG = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "console": {
+            "format": "%(asctime)s - %(levelname)s - %(name) - %(message)s"
+        }
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "console": "syslog"
+        }
+    },
+    "loggers": {
+        "": {
+            "level": "DEBUG",
+            "handlers": [
+                "console"
+            ]
+        }
+    }
+}
 
-logger = logging.getLogger("mpddns")
+logger = logging.getLogger(__name__)
 
 
 class Main(object):

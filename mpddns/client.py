@@ -35,7 +35,7 @@ LOG_CONFIG = {"version": 1,
 def main():
     logging.config.dictConfig(LOG_CONFIG)
 
-    logger = logging.getLogger("mpddns_client")
+    logger = logging.getLogger(__name__)
 
     parser = optparse.OptionParser()
     parser.add_option("-s", "--server", help="Host of mpddns server")

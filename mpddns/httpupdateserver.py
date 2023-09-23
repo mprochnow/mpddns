@@ -19,7 +19,7 @@ import urllib.parse
 import threading
 import select
 
-logger = logging.getLogger("mpddns")
+logger = logging.getLogger(__name__)
 
 
 class HTTPUpdateRequestHandler(http.server.BaseHTTPRequestHandler):
